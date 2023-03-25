@@ -54,6 +54,8 @@ public class PurgeCommand : ICommand
         {
             int count = (int)(long)command.Data.Options.First().Value;
             IEnumerable<IMessage> messages = await channel.GetMessagesAsync(count).FlattenAsync();
+            messages = messages
+                .Where(x => (DateTimeOffset.UtcNow - x.Timestamp).TotalDays <= 14); // Cant use bulk delete API on messages older than 14 days.
             await ((ITextChannel)channel).DeleteMessagesAsync(messages);
             await command.FollowupAsync("Messages deleted.", ephemeral: true);
         } 
@@ -63,7 +65,10 @@ public class PurgeCommand : ICommand
             SocketUser user = (SocketUser)command.Data.Options.Skip(1).First().Value;
             // This is pretty bad, it will not actually delete count messages if there are lots of other messages between. * 2 is a hopeful mitigation.
             IEnumerable<IMessage> messages = await channel.GetMessagesAsync(Math.Max(count * 2, 50)).FlattenAsync();
-            messages = messages.Where(x => x.Author.Id == user.Id).Take(count);
+            messages = messages
+                .Where(x => x.Author.Id == user.Id)
+                .Take(count)
+                .Where(x => (DateTimeOffset.UtcNow - x.Timestamp).TotalDays <= 14);
             await ((ITextChannel)channel).DeleteMessagesAsync(messages);
             await command.FollowupAsync("Messages deleted.", ephemeral: true);
         }
