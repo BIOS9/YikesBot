@@ -26,7 +26,10 @@ public class DiscordBot
     private readonly DiscordBotOptions _options;
     public readonly DiscordSocketClient DiscordClient;
 
-    public DiscordBot(ILoggerFactory loggerFactory, IOptions<DiscordBotOptions> options)
+    public DiscordBot(
+        ILoggerFactory loggerFactory,
+        IOptions<DiscordBotOptions> options,
+        IEnumerable<ICommand> commands)
     {
         if (loggerFactory == null) throw new ArgumentNullException(nameof(loggerFactory));
         _logger = loggerFactory.CreateLogger<DiscordBot>();
@@ -46,6 +49,11 @@ public class DiscordBot
         });
 
         DiscordClient.Log += DiscordClientOnLog;
+        
+        new SlashCommandHandler(
+            DiscordClient,
+            loggerFactory.CreateLogger<SlashCommandHandler>(),
+            commands).Register();
     }
 
     private Task DiscordClientOnLog(LogMessage arg)
