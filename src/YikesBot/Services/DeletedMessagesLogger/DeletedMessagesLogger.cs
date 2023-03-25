@@ -10,11 +10,13 @@ public class DeletedMessagesLogger
 
     public DeletedMessagesLogger(ILogger<DeletedMessagesLogger> logger, DiscordBot.DiscordBot discordBot)
     {
-        _logger = _logger ?? throw new ArgumentNullException(nameof(_logger));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _discordBot = discordBot ?? throw new ArgumentNullException(nameof(discordBot));
+        
         _discordBot.DiscordClient.MessageDeleted += DiscordClientOnMessageDeleted;
     }
 
-    private Task DiscordClientOnMessageDeleted(Cacheable<IMessage, ulong> arg1, Cacheable<IMessageChannel, ulong> arg2)
+    private Task DiscordClientOnMessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
     {
         throw new NotImplementedException();
     }
