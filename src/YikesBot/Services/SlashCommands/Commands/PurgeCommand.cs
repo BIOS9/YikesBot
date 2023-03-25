@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.WebSocket;
 using YikesBot.Services.Bot;
 
 namespace YikesBot.Services.SlashCommands.Commands;
@@ -21,12 +22,12 @@ public class PurgeCommand : ICommand
             .WithDescription("Deletes one or more messages in the current channel.")
             .WithDefaultMemberPermissions(GuildPermission.Administrator)
             .AddOption(
-                "number",
+                "limit",
                 ApplicationCommandOptionType.Integer,
                 "The maximum number of messages to delete.",
                 true,
                 minValue: 1,
-                maxValue: 500)
+                maxValue: 1000)
             .AddOption(
                 "user",
                 ApplicationCommandOptionType.User,
@@ -37,21 +38,38 @@ public class PurgeCommand : ICommand
 
     public async Task ExecuteAsync(ISlashCommandInteraction command)
     {
-        if (command.ChannelId != null)
+        if (command.ChannelId == null)
         {
-            await command.RespondAsync("This command can only be used in a guild channel.", ephemeral: true);
+            await command.FollowupAsync("This command can only be used in a guild channel.", ephemeral: true);
             return;
         }
-
+        
         if (!(await _discordBot.DiscordClient.GetChannelAsync(command.ChannelId ?? 0) is IMessageChannel channel))
         {
-            await command.RespondAsync("This command can only be used in a text channel.", ephemeral: true);
+            await command.FollowupAsync("This command can only be used in a text channel.", ephemeral: true);
             return;
         }
 
-        int count = (int)command.Data.Options.First().Value;
-        IEnumerable<IMessage> messages = await channel.GetMessagesAsync(count + 1).FlattenAsync();
-        await ((ITextChannel)channel).DeleteMessagesAsync(messages);
-        await command.RespondAsync("Messages deleted.", ephemeral: true);
+        if (command.Data.Options.Count == 1) // If only the number is specified
+        {
+            int count = (int)(long)command.Data.Options.First().Value;
+            IEnumerable<IMessage> messages = await channel.GetMessagesAsync(count).FlattenAsync();
+            await ((ITextChannel)channel).DeleteMessagesAsync(messages);
+            await command.FollowupAsync("Messages deleted.", ephemeral: true);
+        } 
+        else if (command.Data.Options.Count == 2)
+        {
+            int count = (int)(long)command.Data.Options.First().Value;
+            SocketUser user = (SocketUser)command.Data.Options.Skip(1).First().Value;
+            // This is pretty bad, it will not actually delete count messages if there are lots of other messages between. * 2 is a hopeful mitigation.
+            IEnumerable<IMessage> messages = await channel.GetMessagesAsync(Math.Max(count * 2, 50)).FlattenAsync();
+            messages = messages.Where(x => x.Author.Id == user.Id).Take(count);
+            await ((ITextChannel)channel).DeleteMessagesAsync(messages);
+            await command.FollowupAsync("Messages deleted.", ephemeral: true);
+        }
+        else
+        {
+            await command.FollowupAsync("Invalid number of arguments.", ephemeral: true);
+        }
     }
 }
