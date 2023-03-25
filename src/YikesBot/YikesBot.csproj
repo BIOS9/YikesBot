@@ -26,5 +26,4 @@
       </None>
     </ItemGroup>
 
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 </Project>
