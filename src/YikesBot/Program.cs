@@ -1,3 +1,16 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
-Console.WriteLine("Hello, World!");
+Host.CreateDefaultBuilder(args)
+    .ConfigureServices(services =>
+    {
+        
+    })
+    .ConfigureAppConfiguration(appConfig =>
+    {
+        appConfig.AddEnvironmentVariables();
+        appConfig.AddUserSecrets<Program>();
+    })
+    .Build()
+    .RunAsync();
+    
