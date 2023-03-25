@@ -19,10 +19,12 @@ public class Startup : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         await _discordBot.StartAsync(cancellationToken);
+        _deletedMessagesLogger.Start();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        _deletedMessagesLogger.Stop();
         await _discordBot.StartAsync(cancellationToken);
     }
 }
