@@ -18,22 +18,23 @@ public class DeletedMessagesLogger
         _discordBot = discordBot ?? throw new ArgumentNullException(nameof(discordBot));
         
         _discordBot.DiscordClient.MessageDeleted += DiscordClientOnMessageDeleted;
-        //_discordBot.DiscordClient.JoinedGuild += CreateLogChannelAsync;
         _discordBot.DiscordClient.GuildAvailable += CreateLogChannelAsync;
     }
 
     private async Task DiscordClientOnMessageDeleted(Cacheable<IMessage, ulong> cachableMessage, Cacheable<IMessageChannel, ulong> cachableChannel)
     {
-        if (cachableChannel.Value is SocketGuildChannel channel)
+        if (await cachableChannel.GetOrDownloadAsync() is SocketGuildChannel channel)
         {
             IMessageChannel logChannel = await GetLogChannelAsync(channel.Guild);
-            await logChannel.SendMessageAsync(cachableMessage.Value.Content);
+            IMessage message = await cachableMessage.GetOrDownloadAsync();
+            if (message == null) return; // If the message is not in our cache we cannot get the content
+            await logChannel.SendMessageAsync(message.Content);
         }
     }
 
     private async Task<IMessageChannel> GetLogChannelAsync(IGuild guild)
     {
-        var channels = await guild.GetTextChannelsAsync(CacheMode.CacheOnly);
+        var channels = await guild.GetTextChannelsAsync(CacheMode.AllowDownload);
         return channels.First(x => x.Name.Equals(LogChannelName));
     }
 
@@ -47,15 +48,5 @@ public class DeletedMessagesLogger
             var logChannel = await guild.CreateTextChannelAsync(LogChannelName);
             await logChannel.AddPermissionOverwriteAsync(guild.EveryoneRole, permissionOverrides);
         }
-    }
-
-    public Task StartAsync(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
     }
 }

@@ -39,7 +39,7 @@ public class DiscordBot
             LogLevel = LogSeverity.Verbose,
             LogGatewayIntentWarnings = true,
             AlwaysDownloadUsers = true,
-            MessageCacheSize = 200,
+            MessageCacheSize = 1000,
             GatewayIntents = GatewayIntents.Guilds 
                 | GatewayIntents.MessageContent 
                 | GatewayIntents.GuildMessages 
