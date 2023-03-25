@@ -12,10 +12,7 @@ await Host.CreateDefaultBuilder(args)
         config.AddEnvironmentVariables();
         config.AddUserSecrets<Program>();
     })
-    .UseSerilog((context, config) =>
-    {
-        config.ReadFrom.Configuration(context.Configuration);
-    })
+    .UseSerilog((context, config) => { config.ReadFrom.Configuration(context.Configuration); })
     .ConfigureServices((context, services) =>
     {
         services

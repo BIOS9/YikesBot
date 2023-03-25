@@ -6,8 +6,8 @@ namespace YikesBot;
 
 public class Startup : IHostedService
 {
-    private readonly DiscordBot _discordBot;
     private readonly DeletedMessagesLogger _deletedMessagesLogger;
+    private readonly DiscordBot _discordBot;
 
     public Startup(DiscordBot discordBot, DeletedMessagesLogger deletedMessagesLogger)
     {
