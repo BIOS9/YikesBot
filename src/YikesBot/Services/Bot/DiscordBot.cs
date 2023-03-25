@@ -3,10 +3,11 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using YikesBot.Services.DeletedMessages;
 
-namespace YikesBot.Services.DiscordBot;
+namespace YikesBot.Services.Bot;
 
-public class DiscordBot : IHostedService
+public class DiscordBot
 {
     public readonly DiscordSocketClient DiscordClient;
     
@@ -39,7 +40,10 @@ public class DiscordBot : IHostedService
             LogGatewayIntentWarnings = true,
             AlwaysDownloadUsers = true,
             MessageCacheSize = 200,
-            GatewayIntents = GatewayIntents.AllUnprivileged
+            GatewayIntents = GatewayIntents.Guilds 
+                | GatewayIntents.MessageContent 
+                | GatewayIntents.GuildMessages 
+                | GatewayIntents.GuildMessageReactions
         });
         
         DiscordClient.Log += DiscordClientOnLog;

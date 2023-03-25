@@ -1,7 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using YikesBot.Services.DiscordBot;
+using YikesBot;
+using YikesBot.Services.Bot;
+using YikesBot.Services.DeletedMessages;
 
 await Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(config =>
@@ -15,7 +18,10 @@ await Host.CreateDefaultBuilder(args)
     })
     .ConfigureServices((context, services) =>
     {
-        services.AddDiscordBot(context.Configuration);
+        services
+            .AddHostedService<Startup>()
+            .AddDiscordBot(context.Configuration)
+            .AddDeletedMessagesLogger();
     })
     .Build()
     .RunAsync();

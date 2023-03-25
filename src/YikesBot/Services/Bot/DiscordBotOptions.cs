@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace YikesBot.Services.DiscordBot;
+namespace YikesBot.Services.Bot;
 
 public class DiscordBotOptions
 {
