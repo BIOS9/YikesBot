@@ -1,18 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Serilog;
 
-Host.CreateDefaultBuilder(args)
-    .ConfigureServices(services =>
+await Host.CreateDefaultBuilder(args)
+    .UseSerilog((context, config) =>
     {
-        
+        config.ReadFrom.Configuration(context.Configuration);
     })
-    .ConfigureAppConfiguration(appConfig =>
+    .ConfigureServices((context, services) =>
     {
-        appConfig.AddEnvironmentVariables();
-        appConfig.AddUserSecrets<Program>();
     })
-    .UseSerilog()
     .Build()
     .RunAsync();
-    
