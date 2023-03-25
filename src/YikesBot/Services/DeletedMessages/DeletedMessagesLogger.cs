@@ -1,4 +1,6 @@
-﻿using Discord;
+﻿using System.Text;
+using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using YikesBot.Services.Bot;
@@ -26,9 +28,32 @@ public class DeletedMessagesLogger
         if (await cachableChannel.GetOrDownloadAsync() is SocketGuildChannel channel)
         {
             IMessageChannel logChannel = await GetLogChannelAsync(channel.Guild);
-            IMessage message = await cachableMessage.GetOrDownloadAsync();
+            IMessage message = cachableMessage.Value;
             if (message == null) return; // If the message is not in our cache we cannot get the content
-            await logChannel.SendMessageAsync(message.Content);
+            var embed = new EmbedBuilder()
+                .WithDescription($"**Message from {message.Author.Mention} deleted in <#{message.Channel.Id}>**\n" + message.Content)
+                .WithColor(new Color(254, 204, 80))
+                .WithCurrentTimestamp()
+                .WithAuthor(x =>
+                {
+                    x.Name = $"{message.Author.Username}#{message.Author.DiscriminatorValue}";
+                    x.IconUrl = message.Author.GetAvatarUrl(ImageFormat.Auto, 256);
+                })
+                .WithFooter($"User: {message.Author.Id} • Message: {message.Id}");
+            MessageDeleteAuditLogData a;
+
+            // var auditLogs = channel.Guild.GetAuditLogsAsync(10, actionType: ActionType.MessageDeleted);
+            // await foreach(var logs in auditLogs)
+            // {
+            //     foreach (var log in logs)
+            //     {
+            //         _logger.LogInformation("User : " + log.User.Username);
+            //         _logger.LogInformation("Channel : " + (log.Data as MessageDeleteAuditLogData).ChannelId);
+            //         _logger.LogInformation("Target : " + (log.Data as MessageDeleteAuditLogData).Target.Username);
+            //     }
+            // }
+            
+            await logChannel.SendMessageAsync(String.Empty,  embed: embed.Build());
         }
     }
 
