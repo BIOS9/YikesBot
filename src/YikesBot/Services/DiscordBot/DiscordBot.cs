@@ -59,8 +59,8 @@ public class DiscordBot : IHostedService
         _logger.LogInformation("Discord bot running");
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        return Task.CompletedTask;
+        await _client.StopAsync();
     }
 }
