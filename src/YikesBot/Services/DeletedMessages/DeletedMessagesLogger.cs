@@ -30,30 +30,73 @@ public class DeletedMessagesLogger
             IMessageChannel logChannel = await GetLogChannelAsync(channel.Guild);
             IMessage message = cachableMessage.Value;
             if (message == null) return; // If the message is not in our cache we cannot get the content
-            var embed = new EmbedBuilder()
-                .WithDescription($"**Message from {message.Author.Mention} deleted in <#{message.Channel.Id}>**\n" + message.Content)
-                .WithColor(new Color(254, 204, 80))
-                .WithCurrentTimestamp()
-                .WithAuthor(x =>
-                {
-                    x.Name = $"{message.Author.Username}#{message.Author.DiscriminatorValue}";
-                    x.IconUrl = message.Author.GetAvatarUrl(ImageFormat.Auto, 256);
-                })
-                .WithFooter($"User: {message.Author.Id} • Message: {message.Id}");
-            MessageDeleteAuditLogData a;
 
-            // var auditLogs = channel.Guild.GetAuditLogsAsync(10, actionType: ActionType.MessageDeleted);
-            // await foreach(var logs in auditLogs)
-            // {
-            //     foreach (var log in logs)
-            //     {
-            //         _logger.LogInformation("User : " + log.User.Username);
-            //         _logger.LogInformation("Channel : " + (log.Data as MessageDeleteAuditLogData).ChannelId);
-            //         _logger.LogInformation("Target : " + (log.Data as MessageDeleteAuditLogData).Target.Username);
-            //     }
-            // }
+            IUser? suspectedDeleter = null;
+            var auditLogs = channel.Guild.GetAuditLogsAsync(10, actionType: ActionType.MessageDeleted);
+            await foreach(var logs in auditLogs)
+            {
+                if (suspectedDeleter != null) break;
+                foreach (var log in logs)
+                {
+                    if (!(log.Data is MessageDeleteAuditLogData messageDeleteData)) continue;
+                    if (messageDeleteData.ChannelId != channel.Id) continue;
+                    if (messageDeleteData.Target.Id  != message.Author.Id) continue;
+                    if (log.CreatedAt < DateTimeOffset.UtcNow - TimeSpan.FromMinutes(10)) continue; // Multiple message deletes get saved under the first timestamp
+
+                    suspectedDeleter = log.User;
+                    break;
+                }
+            }
             
-            await logChannel.SendMessageAsync(String.Empty,  embed: embed.Build());
+            if (!string.IsNullOrWhiteSpace(message.Content))
+            {
+                _logger.LogInformation("Logging deleted message from {Author} in {Guild}/{Channel}", 
+                    message.Author.Username + "#" + message.Author.Discriminator,
+                    channel.Guild.Name,
+                    channel.Name);
+                var embed = new EmbedBuilder()
+                    .WithDescription($"**Message from {message.Author.Mention} deleted in <#{message.Channel.Id}> " +
+                                     (suspectedDeleter != null ? $" probably by {suspectedDeleter.Mention}" : string.Empty) + 
+                                     "**\n" + message.Content)
+                    .WithColor(new Color(254, 204, 80))
+                    .WithCurrentTimestamp()
+                    .WithAuthor(x =>
+                    {
+                        x.Name = $"{message.Author.Username}#{message.Author.DiscriminatorValue}";
+                        x.IconUrl = message.Author.GetAvatarUrl(ImageFormat.Auto, 256);
+                    })
+                    .WithFooter($"User: {message.Author.Id} • Message: {message.Id}");
+                if (suspectedDeleter != null)
+                {
+                    
+                }
+                await logChannel.SendMessageAsync(String.Empty,  embed: embed.Build());
+            }
+
+            foreach (var attachment in message.Attachments)
+            {
+                if (!attachment.ContentType.StartsWith("image")) continue;
+                
+                _logger.LogInformation("Logging deleted image from {Author} in {Guild}/{Channel}", 
+                    message.Author.Username + "#" + message.Author.Discriminator,
+                    channel.Guild.Name,
+                    channel.Name);
+                
+                var embed = new EmbedBuilder()
+                    .WithDescription($"**Image from {message.Author.Mention} deleted in <#{message.Channel.Id}>" +
+                                     (suspectedDeleter != null ? $" probably by {suspectedDeleter.Mention}" : string.Empty) + 
+                                     "**\n" + message.Content)
+                    .WithColor(new Color(254, 204, 80))
+                    .WithCurrentTimestamp()
+                    .WithImageUrl(attachment.Url)
+                    .WithAuthor(x =>
+                    {
+                        x.Name = $"{message.Author.Username}#{message.Author.DiscriminatorValue}";
+                        x.IconUrl = message.Author.GetAvatarUrl(ImageFormat.Auto, 256);
+                    })
+                    .WithFooter($"User: {message.Author.Id} • Message: {message.Id}");
+                await logChannel.SendMessageAsync(String.Empty,  embed: embed.Build());
+            }
         }
     }
 
