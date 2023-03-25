@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using YikesBot.Services.SlashCommands;
 
 namespace YikesBot.Services.Bot;
 
@@ -28,8 +29,7 @@ public class DiscordBot
 
     public DiscordBot(
         ILoggerFactory loggerFactory,
-        IOptions<DiscordBotOptions> options,
-        IEnumerable<ICommand> commands)
+        IOptions<DiscordBotOptions> options)
     {
         if (loggerFactory == null) throw new ArgumentNullException(nameof(loggerFactory));
         _logger = loggerFactory.CreateLogger<DiscordBot>();
@@ -49,11 +49,6 @@ public class DiscordBot
         });
 
         DiscordClient.Log += DiscordClientOnLog;
-        
-        new SlashCommandHandler(
-            DiscordClient,
-            loggerFactory.CreateLogger<SlashCommandHandler>(),
-            commands).Register();
     }
 
     private Task DiscordClientOnLog(LogMessage arg)

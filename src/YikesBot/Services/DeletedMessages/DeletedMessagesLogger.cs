@@ -39,7 +39,7 @@ public class DeletedMessagesLogger
             var logChannel = await GetLogChannelAsync(channel.Guild);
             var message = cachableMessage.Value;
             if (message == null) return; // If the message is not in our cache we cannot get the content
-
+            
             IUser? suspectedDeleter = null;
             var auditLogs = channel.Guild.GetAuditLogsAsync(10, actionType: ActionType.MessageDeleted);
             await foreach (var logs in auditLogs)
