@@ -12,15 +12,14 @@ public class DeletedMessagesLogger
     private const string LogChannelName = "deleted-messages";
 
     private readonly ILogger<DeletedMessagesLogger> _logger;
-    private readonly DiscordBot _discordBot;
-    
+
     public DeletedMessagesLogger(ILogger<DeletedMessagesLogger> logger, DiscordBot discordBot)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _discordBot = discordBot ?? throw new ArgumentNullException(nameof(discordBot));
+        _ = discordBot ?? throw new ArgumentNullException(nameof(discordBot));
         
-        _discordBot.DiscordClient.MessageDeleted += DiscordClientOnMessageDeleted;
-        _discordBot.DiscordClient.GuildAvailable += CreateLogChannelAsync;
+        discordBot.DiscordClient.MessageDeleted += DiscordClientOnMessageDeleted;
+        discordBot.DiscordClient.GuildAvailable += CreateLogChannelAsync;
     }
 
     private async Task DiscordClientOnMessageDeleted(Cacheable<IMessage, ulong> cachableMessage, Cacheable<IMessageChannel, ulong> cachableChannel)
