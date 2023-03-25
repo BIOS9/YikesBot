@@ -1,11 +1,11 @@
-﻿using System.Windows.Input;
-using Discord;
+﻿using Discord;
 using Discord.Net;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using YikesBot.Services.Bot;
 
-namespace YikesBot.Services.Bot;
+namespace YikesBot.Services.SlashCommands;
 
 public class SlashCommandHandler
 {
@@ -17,20 +17,27 @@ public class SlashCommandHandler
         _registeredCommands = new(); // I am aware that this is still mutable.
 
     public SlashCommandHandler(
-        DiscordSocketClient discordClient,
+        DiscordBot discordBot,
         ILogger<SlashCommandHandler> logger,
         IEnumerable<ICommand> commands)
     {
-        _discordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
+        _discordClient = discordBot?.DiscordClient ?? throw new ArgumentNullException(nameof(discordBot));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _commands = commands ?? throw new ArgumentNullException(nameof(commands));
     }
 
-    public void Register()
+    public void Start()
     {
         _logger.LogDebug("Hooking slash command events...");
         _discordClient.Ready += DiscordClientOnReady;
         _discordClient.SlashCommandExecuted += DiscordClientOnSlashCommandExecuted;
+    }
+    
+    public void Stop()
+    {
+        _logger.LogDebug("Unhooking slash command events...");
+        _discordClient.Ready -= DiscordClientOnReady;
+        _discordClient.SlashCommandExecuted -= DiscordClientOnSlashCommandExecuted;
     }
 
     private async Task DiscordClientOnReady()

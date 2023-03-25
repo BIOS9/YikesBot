@@ -1,6 +1,6 @@
 ﻿using Discord;
 
-namespace YikesBot.Services.Bot;
+namespace YikesBot.Services.SlashCommands;
 
 public interface ICommand
 {
