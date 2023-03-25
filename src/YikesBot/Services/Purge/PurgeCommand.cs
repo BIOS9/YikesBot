@@ -16,7 +16,9 @@ public class PurgeCommand : ICommand
                 "number",
                 ApplicationCommandOptionType.Integer,
                 "The maximum number of messages to delete.",
-                true)
+                true,
+                minValue: 1,
+                maxValue: 500)
             .AddOption(
                 "user",
                 ApplicationCommandOptionType.User,
