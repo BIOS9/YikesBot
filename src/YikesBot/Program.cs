@@ -5,6 +5,7 @@ using Serilog;
 using YikesBot;
 using YikesBot.Services.Bot;
 using YikesBot.Services.DeletedMessages;
+using YikesBot.Services.Purge;
 
 await Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(config =>
@@ -18,6 +19,7 @@ await Host.CreateDefaultBuilder(args)
         services
             .AddHostedService<Startup>()
             .AddDiscordBot(context.Configuration)
+            .AddPurge()
             .AddDeletedMessagesLogger();
     })
     .Build()
