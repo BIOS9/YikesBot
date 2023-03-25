@@ -8,10 +8,11 @@ namespace YikesBot.Services.DiscordBot;
 
 public class DiscordBot : IHostedService
 {
+    public readonly DiscordSocketClient DiscordClient;
+    
     private readonly ILogger<DiscordBot> _logger;
     private readonly ILogger<DiscordSocketClient> _botLogger;
     private readonly DiscordBotOptions _options;
-    private readonly DiscordSocketClient _client;
 
     private readonly IReadOnlyDictionary<LogSeverity, LogLevel>
         _logLevelMap = // Maps Discord.NET logging levels to Microsoft extensions logging levels.
@@ -32,7 +33,7 @@ public class DiscordBot : IHostedService
         _botLogger = loggerFactory.CreateLogger<DiscordSocketClient>();
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
 
-        _client = new DiscordSocketClient(new DiscordSocketConfig
+        DiscordClient = new DiscordSocketClient(new DiscordSocketConfig
         {
             LogLevel = LogSeverity.Verbose,
             LogGatewayIntentWarnings = true,
@@ -41,10 +42,10 @@ public class DiscordBot : IHostedService
             GatewayIntents = GatewayIntents.AllUnprivileged
         });
         
-        _client.Log += ClientOnLog;
+        DiscordClient.Log += DiscordClientOnLog;
     }
 
-    private Task ClientOnLog(LogMessage arg)
+    private Task DiscordClientOnLog(LogMessage arg)
     {
         LogLevel level = _logLevelMap[arg.Severity];
         _botLogger.Log(level, arg.Exception, "{source} {message}", arg.Source, arg.Message);
@@ -54,13 +55,13 @@ public class DiscordBot : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Discord bot starting");
-        await _client.LoginAsync(TokenType.Bot, _options.Token);
-        await _client.StartAsync();
+        await DiscordClient.LoginAsync(TokenType.Bot, _options.Token);
+        await DiscordClient.StartAsync();
         _logger.LogInformation("Discord bot running");
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        await _client.StopAsync();
+        await DiscordClient.StopAsync();
     }
 }
