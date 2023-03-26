@@ -17,14 +17,7 @@ public class MicropadCommand : ICommand
         "https://getmicropad.com/img/scrot/main-page.png"
     };
     private static readonly Random ScreenshotRng =new();
-    
-    private readonly DiscordBot _discordBot;
 
-    public MicropadCommand(DiscordBot discordBot)
-    {
-        _discordBot = discordBot ?? throw new ArgumentNullException(nameof(discordBot));
-    }
-    
     public SlashCommandProperties Build()
     {
         return new SlashCommandBuilder()
