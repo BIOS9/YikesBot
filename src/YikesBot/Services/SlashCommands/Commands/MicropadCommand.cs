@@ -28,7 +28,7 @@ public class MicropadCommand : ICommand
     public SlashCommandProperties Build()
     {
         return new SlashCommandBuilder()
-            .WithName("micropad")
+            .WithName(Name)
             .WithDescription("Shills Micropad.")
             .Build();
     }
