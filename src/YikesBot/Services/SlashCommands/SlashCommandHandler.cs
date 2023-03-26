@@ -98,7 +98,6 @@ public class SlashCommandHandler
         try
         {
             _logger.LogInformation("Executing slash command module {command}", commandModule.Name);
-            await command.DeferAsync(ephemeral: true);
             await commandModule.ExecuteAsync(command);
         }
         catch (Exception ex)
