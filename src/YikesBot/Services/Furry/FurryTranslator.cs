@@ -241,6 +241,7 @@ public class FurryTranslator
 
     private static string InsertFurryTokens(string input)
     {
+        if (input.Length < 10) return input;
         return InsertEndTokens(InsertMiddleTokens(input));
     }
 
