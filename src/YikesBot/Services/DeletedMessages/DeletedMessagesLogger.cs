@@ -94,6 +94,15 @@ public class DeletedMessagesLogger
                     channel.Guild.Name,
                     channel.Name);
 
+
+                string path = Path.GetTempFileName();
+                using (var client = new HttpClient())
+                await using (var s = await client.GetStreamAsync(attachment.Url))
+                await using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+                {
+                    await s.CopyToAsync(fs);
+                }
+                
                 var embed = new EmbedBuilder()
                     .WithDescription($"**Image from {message.Author.Mention} deleted in <#{message.Channel.Id}>" +
                                      (suspectedDeleter != null
@@ -102,14 +111,15 @@ public class DeletedMessagesLogger
                                      "**\n" + message.Content)
                     .WithColor(new Color(254, 204, 80))
                     .WithCurrentTimestamp()
-                    .WithImageUrl(attachment.Url)
+                    .WithImageUrl($"attachment://{attachment.Filename}")
                     .WithAuthor(x =>
                     {
                         x.Name = $"{message.Author.Username}#{message.Author.DiscriminatorValue}";
                         x.IconUrl = message.Author.GetAvatarUrl(ImageFormat.Auto, 256);
                     })
                     .WithFooter($"User: {message.Author.Id} • Message: {message.Id}");
-                await logChannel.SendMessageAsync(string.Empty, embed: embed.Build());
+                await logChannel.SendFileAsync(File.Open(path, FileMode.Open), embed: embed.Build(), filename: attachment.Filename);
+                File.Delete(path);
             }
         }
     }
