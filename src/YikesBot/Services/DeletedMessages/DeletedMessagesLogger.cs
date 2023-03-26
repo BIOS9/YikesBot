@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using System.Collections.Concurrent;
+using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
@@ -12,7 +13,8 @@ public class DeletedMessagesLogger
 
     private readonly ILogger<DeletedMessagesLogger> _logger;
     private readonly DiscordBot _discordBot;
-    
+    private readonly ConcurrentDictionary<ulong, byte> _ignoredMessages = new(); // Just using this as a hash set since C# doesnt have a concurrent one yet
+
     public DeletedMessagesLogger(ILogger<DeletedMessagesLogger> logger, DiscordBot discordBot)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -27,13 +29,25 @@ public class DeletedMessagesLogger
     
     public void Stop()
     {
+        _ignoredMessages.Clear();
         _discordBot.DiscordClient.MessageDeleted -= DiscordClientOnMessageDeleted;
         _discordBot.DiscordClient.GuildAvailable -= CreateLogChannelAsync;
     }
 
+    public void IgnoreMessage(ulong messageId)
+    {
+        _logger.LogDebug("Ignoring deleted message with ID {Id}", messageId);
+        _ = _ignoredMessages.TryAdd(messageId, 0);
+    }
+    
     private async Task DiscordClientOnMessageDeleted(Cacheable<IMessage, ulong> cachableMessage,
         Cacheable<IMessageChannel, ulong> cachableChannel)
     {
+        if (_ignoredMessages.TryRemove(cachableMessage.Id, out _))
+        {
+            return;
+        }
+        
         if (await cachableChannel.GetOrDownloadAsync() is SocketGuildChannel channel)
         {
             var logChannel = await GetLogChannelAsync(channel.Guild);
