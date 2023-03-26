@@ -54,7 +54,7 @@ public class FurryTranslator
     private static readonly List<Tuple<Regex, string>> RegexReplacements = new()
     {
         new Tuple<Regex, string>(new Regex(@"ahh+"), "murrrr"),
-        new Tuple<Regex, string>(new Regex(@"(ha+)+h?"), "hehehehe~")
+        new Tuple<Regex, string>(new Regex(@"(ha+){2,}h?"), "hehehehe~")
     };
 
     // Always replaces these tokens inside other tokens no matter what
