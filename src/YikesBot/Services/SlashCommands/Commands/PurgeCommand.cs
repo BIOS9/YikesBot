@@ -18,7 +18,7 @@ public class PurgeCommand : ICommand
     public SlashCommandProperties Build()
     {
         return new SlashCommandBuilder()
-            .WithName("purge")
+            .WithName(Name)
             .WithDescription("Deletes one or more messages in the current channel.")
             .WithDefaultMemberPermissions(GuildPermission.Administrator)
             .AddOption(
