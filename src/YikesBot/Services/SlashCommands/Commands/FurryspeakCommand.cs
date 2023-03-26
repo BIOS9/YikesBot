@@ -48,7 +48,6 @@ public class FurryspeakCommand : ICommand
         }
 
         bool enabled = (bool)command.Data.Options.First().Value;
-        string webhook = (string)command.Data.Options.Skip(1).First().Value;
         if (enabled)
         {
             await _furrySpeaker.EnableChannelAsync(textChannel);

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Discord;
+using Discord.Rest;
 using Discord.Webhook;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
@@ -40,11 +41,10 @@ public class FurrySpeaker
     {
         if (channel == null) throw new ArgumentNullException(nameof(channel));
         _logger.LogInformation("Enabling furry speaker in {Guild}/{Channel}", channel.Guild, channel.Name);
-        
-        var webhook = (await channel.GetWebhooksAsync())
-            .DefaultIfEmpty(await channel.CreateWebhookAsync("Awooo"))
-            .First();
-        
+
+        RestWebhook webhook = (await channel.GetWebhooksAsync()).FirstOrDefault(defaultValue: null)
+                               ?? await channel.CreateWebhookAsync("Awooo");
+
         _ = _enabledChannels.TryAdd(channel.Id, new DiscordWebhookClient(webhook.Id, webhook.Token));
     }
     
