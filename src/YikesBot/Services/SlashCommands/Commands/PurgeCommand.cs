@@ -40,13 +40,13 @@ public class PurgeCommand : ICommand
     {
         if (command.ChannelId == null)
         {
-            await command.FollowupAsync("This command can only be used in a guild channel.", ephemeral: true);
+            await command.RespondAsync("This command can only be used in a guild channel.", ephemeral: true);
             return;
         }
         
         if (!(await _discordBot.DiscordClient.GetChannelAsync(command.ChannelId ?? 0) is IMessageChannel channel))
         {
-            await command.FollowupAsync("This command can only be used in a text channel.", ephemeral: true);
+            await command.RespondAsync("This command can only be used in a text channel.", ephemeral: true);
             return;
         }
 
@@ -57,7 +57,7 @@ public class PurgeCommand : ICommand
             messages = messages
                 .Where(x => (DateTimeOffset.UtcNow - x.Timestamp).TotalDays <= 14); // Cant use bulk delete API on messages older than 14 days.
             await ((ITextChannel)channel).DeleteMessagesAsync(messages);
-            await command.FollowupAsync("Messages deleted.", ephemeral: true);
+            await command.RespondAsync("Messages deleted.", ephemeral: true);
         } 
         else if (command.Data.Options.Count == 2)
         {
@@ -70,11 +70,11 @@ public class PurgeCommand : ICommand
                 .Take(count)
                 .Where(x => (DateTimeOffset.UtcNow - x.Timestamp).TotalDays <= 14);
             await ((ITextChannel)channel).DeleteMessagesAsync(messages);
-            await command.FollowupAsync("Messages deleted.", ephemeral: true);
+            await command.RespondAsync("Messages deleted.", ephemeral: true);
         }
         else
         {
-            await command.FollowupAsync("Invalid number of arguments.", ephemeral: true);
+            await command.RespondAsync("Invalid number of arguments.", ephemeral: true);
         }
     }
 }
