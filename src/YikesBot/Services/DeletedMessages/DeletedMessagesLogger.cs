@@ -9,7 +9,6 @@ namespace YikesBot.Services.DeletedMessages;
 public class DeletedMessagesLogger
 {
     private const string LogChannelName = "deleted-messages";
-    private const string DeletedImagesFolder = "deleted_images";
 
     private readonly ILogger<DeletedMessagesLogger> _logger;
     private readonly DiscordBot _discordBot;
@@ -24,20 +23,12 @@ public class DeletedMessagesLogger
     {
         _discordBot.DiscordClient.MessageDeleted += DiscordClientOnMessageDeleted;
         _discordBot.DiscordClient.GuildAvailable += CreateLogChannelAsync;
-        if (!Directory.Exists(DeletedImagesFolder))
-        {
-            Directory.CreateDirectory(DeletedImagesFolder);
-        }
     }
     
     public void Stop()
     {
         _discordBot.DiscordClient.MessageDeleted -= DiscordClientOnMessageDeleted;
         _discordBot.DiscordClient.GuildAvailable -= CreateLogChannelAsync;
-        foreach (string file in Directory.GetFiles(DeletedImagesFolder))
-        {
-            File.Delete(file);
-        }
     }
 
     private async Task DiscordClientOnMessageDeleted(Cacheable<IMessage, ulong> cachableMessage,
@@ -103,7 +94,8 @@ public class DeletedMessagesLogger
                     channel.Guild.Name,
                     channel.Name);
 
-                string path = Path.Join(DeletedImagesFolder, attachment.Filename);
+
+                string path = Path.GetTempFileName();
                 using (var client = new HttpClient())
                 await using (var s = await client.GetStreamAsync(attachment.Url))
                 await using (var fs = new FileStream(path, FileMode.OpenOrCreate))
@@ -126,7 +118,7 @@ public class DeletedMessagesLogger
                         x.IconUrl = message.Author.GetAvatarUrl(ImageFormat.Auto, 256);
                     })
                     .WithFooter($"User: {message.Author.Id} • Message: {message.Id}");
-                await logChannel.SendFileAsync(path, embed: embed.Build());
+                await logChannel.SendFileAsync(File.Open(path, FileMode.Open), embed: embed.Build(), filename: attachment.Filename);
                 File.Delete(path);
             }
         }
