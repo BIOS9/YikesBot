@@ -13,7 +13,7 @@ public class FurrySpeaker
     private readonly ILogger<FurrySpeaker> _logger;
     private readonly DiscordBot _discordBot;
     private readonly DeletedMessagesLogger _deletedMessagesLogger;
-    private readonly ConcurrentDictionary<ulong, string> _enabledChannels = new();
+    private readonly ConcurrentDictionary<ulong, DiscordWebhookClient> _enabledChannels = new();
     public ISet<ulong> EnabledChannels => _enabledChannels.Keys.ToHashSet();
     
     public FurrySpeaker(
@@ -36,14 +36,19 @@ public class FurrySpeaker
         _discordBot.DiscordClient.MessageReceived -= DiscordClientOnMessageReceived;
     }
 
-    public void EnableChannel(SocketGuildChannel channel, string webhook)
+    public async Task EnableChannelAsync(SocketTextChannel channel)
     {
         if (channel == null) throw new ArgumentNullException(nameof(channel));
         _logger.LogInformation("Enabling furry speaker in {Guild}/{Channel}", channel.Guild, channel.Name);
-        _ = _enabledChannels.TryAdd(channel.Id, webhook);
+        
+        var webhook = (await channel.GetWebhooksAsync())
+            .DefaultIfEmpty(await channel.CreateWebhookAsync("Awooo"))
+            .First();
+        
+        _ = _enabledChannels.TryAdd(channel.Id, new DiscordWebhookClient(webhook.Id, webhook.Token));
     }
     
-    public void DisableChannel(SocketGuildChannel channel)
+    public void DisableChannel(SocketTextChannel channel)
     {
         if (channel == null) throw new ArgumentNullException(nameof(channel));
         _logger.LogInformation("Disabling furry speaker in {Guild}/{Channel}", channel.Guild, channel.Name);
@@ -67,8 +72,7 @@ public class FurrySpeaker
         _deletedMessagesLogger.IgnoreMessage(message.Id);
         await message.DeleteAsync();
 
-        DiscordWebhookClient client = new DiscordWebhookClient(_enabledChannels[message.Channel.Id]);
-
+        DiscordWebhookClient client = _enabledChannels[message.Channel.Id];
 
         Dictionary<string, FileAttachment> newAttachments = new();
         foreach (var attachment in message.Attachments)
