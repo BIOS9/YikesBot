@@ -5,6 +5,7 @@ using Serilog;
 using YikesBot;
 using YikesBot.Services.Bot;
 using YikesBot.Services.DeletedMessages;
+using YikesBot.Services.Furry;
 using YikesBot.Services.MessageContent;
 using YikesBot.Services.SlashCommands;
 
@@ -21,6 +22,7 @@ await Host.CreateDefaultBuilder(args)
             .AddHostedService<Startup>()
             .AddDiscordBot(context.Configuration)
             .AddSlashCommands()
+            .AddFurrySpeaker()
             .AddMessageContentHandler()
             .AddDeletedMessagesLogger();
     })

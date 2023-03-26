@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using YikesBot.Services.Bot;
 using YikesBot.Services.DeletedMessages;
+using YikesBot.Services.Furry;
 using YikesBot.Services.MessageContent;
 using YikesBot.Services.SlashCommands;
 
@@ -11,15 +12,18 @@ public class Startup : IHostedService
     private readonly DiscordBot _discordBot;
     private readonly DeletedMessagesLogger _deletedMessagesLogger;
     private readonly MessageContentHandler _messageContentHandler;
+    private readonly FurrySpeaker _furrySpeaker;
     private readonly SlashCommandHandler _slashCommandHandler;
 
     public Startup(
         DiscordBot discordBot,
         DeletedMessagesLogger deletedMessagesLogger,
         MessageContentHandler messageContentHandler,
-        SlashCommandHandler slashCommandHandler)
+        SlashCommandHandler slashCommandHandler,
+        FurrySpeaker furrySpeaker)
     {
         _discordBot = discordBot ?? throw new ArgumentNullException(nameof(discordBot));
+        _furrySpeaker = furrySpeaker ?? throw new ArgumentNullException(nameof(furrySpeaker));
         _deletedMessagesLogger =
             deletedMessagesLogger ?? throw new ArgumentNullException(nameof(deletedMessagesLogger));
         _messageContentHandler =
@@ -33,12 +37,14 @@ public class Startup : IHostedService
         await _discordBot.StartAsync(cancellationToken);
         _deletedMessagesLogger.Start();
         _messageContentHandler.Start();
+        _furrySpeaker.Start();
         _slashCommandHandler.Start();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         _slashCommandHandler.Stop();
+        _furrySpeaker.Stop();
         _messageContentHandler.Stop();
         _deletedMessagesLogger.Stop();
         await _discordBot.StartAsync(cancellationToken);
