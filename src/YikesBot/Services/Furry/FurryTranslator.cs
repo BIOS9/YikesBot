@@ -1,50 +1,62 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.VisualBasic;
 
 namespace YikesBot.Services.Furry;
 
 public class FurryTranslator
 {
+    private static Random _random = new Random(); 
+    
     // Replaces single words
     private static readonly Dictionary<string, string> WordReplacements = new()
     {
         {"the", "teh"},
         {"awful", "pawful"},
         {"bite", "nom"},
-        {"bye", "bai"},
+        {"bye", "bai :wave:"},
         {"come", "cum"},
-        {"hi", "hai"},
+        {"hi", "hai :wave:"},
         {"lmao", "hehe~"},
-        {"love", "wuv"},
+        {"love", "wuv :heart:"},
         {"this", "dis"},
         {"your", "ur"},
         {"you", "chu"},
         {"what", "OwO wat"},
         {"what's", "oWo wats"},
         {"whats", "oWo wats"},
+        {"with", "wif"},
         {"police", "pawlice"},
         {"roar", "rawr"},
         {"source", "sauce"},
         {"kiss", "lick"},
         {"hand", "paw"},
         {"father", "daddy"},
+        {"dad", "daddy"},
         {"dog", "good boy"},
         {"awesome", "pawsome"},
+        {"think", "fink"},
+        {"cool", "keww"},
+        {"milk", "milky-wilky"},
+        {"bulge", "bulgy-wulgy"},
+        {"for", "fur"},
+        {"porn", "yiff"},
+        {"admin", "owner"},
+        {"admins", "owners"},
+        {"furry", ":sparkles: furry :sparkles: :fox:"},
+        {"stash", "yiff stash"},
+        {"shit", "dog poop"},
+        {"so", "s-s-so"},
+        {"furries", ":sparkles: furries :sparkles:"},
+        {"please", "pwease :pleading_face:"},
     };
 
     // Replaces tokens with regex rules
     private static readonly List<Tuple<Regex, string>> RegexReplacements = new()
     {
-        new Tuple<Regex, string>(new Regex(@"ahh+"), "murrrr")
+        new Tuple<Regex, string>(new Regex(@"ahh+"), "murrrr"),
+        new Tuple<Regex, string>(new Regex(@"(ha+)+h?"), "hehehehe~")
     };
-    
-    // Replacements that only occur when no other replacements have happened (except global)
-    private static readonly List<Tuple<string, string>> ExclusiveReplacements = new()
-    {
-        
-    };
-        
+
     // Always replaces these tokens inside other tokens no matter what
     // The boolean parameter at the end is if the replacer should stop if it matches this rule
     private static readonly List<Tuple<string, string, bool>> GlobalReplacements = new()
@@ -76,10 +88,13 @@ public class FurryTranslator
         new Tuple<string, string, bool>("🙂", ":smile_cat:", false),
         new Tuple<string, string, bool>("😔", ":cat:", false),
         new Tuple<string, string, bool>("🥸", ":wolf:", false), // Disguised face
+        new Tuple<string, string, bool>("💀", ":panda_face:", false),
         
-        new Tuple<string, string, bool>("for", "fur", true),
-        new Tuple<string, string, bool>("r", "w", false),
-        new Tuple<string, string, bool>("l", "w", false),
+        new Tuple<string, string, bool>("na", "nya", false),
+        new Tuple<string, string, bool>("ne", "nye", false),
+        new Tuple<string, string, bool>("ni", "nyi", false),
+        new Tuple<string, string, bool>("no", "nyo", false),
+        new Tuple<string, string, bool>("nu", "nyu", false),
         new Tuple<string, string, bool>("fuck", "fluff", true),
         new Tuple<string, string, bool>(",", "~", false),
         new Tuple<string, string, bool>(".", "~", false),
@@ -87,6 +102,57 @@ public class FurryTranslator
         new Tuple<string, string, bool>("?", " uwu?", false)
     };
 
+    private const double MiddleTokenChance = 0.03;
+    private static readonly List<string> MiddleTokens = new()
+    {
+        ":point_right::point_left:",
+        "uwu",
+        "owo",
+        ">⁠~⁠<",
+        "xD",
+        ":3",
+        ">.<",
+        ">_<",
+        "V.v.V",
+        "^m^",
+        "OWO",
+        "oWo",
+        "UWU",
+        "uWu",
+        "^_^",
+        ":>",
+        ":dog:",
+        ":dog2:",
+        ":cat:",
+        ":mouse:",
+        ":hamster:",
+        ":rabbit:",
+        ":fox:",
+        ":bear:",
+        ":polar_bear:",
+        ":koala:",
+        ":tiger:",
+        ":cow:",
+        ":unicorn:",
+    };
+
+    private const double EndTokenChance = 0.1;
+    private static readonly List<string> EndTokens = new()
+    {
+        "*nuzzles*",
+        "*pees*",
+        "rawr xD",
+        "raaawr",
+        "*wags tail*",
+        "*sees another dog walking past and barks frantically*",
+        "<:awooo:958999403975290970>",
+        ":pleading_face:",
+        "*stares assertively (im an alpha)*",
+        "*snarls*",
+        "*grrrrrrrr*",
+        "*sniff sniff*",
+    };
+    
     public static string Translate(string text)
     {
         StringBuilder output = new StringBuilder();
@@ -95,38 +161,12 @@ public class FurryTranslator
             output.Append(TranslateToken(token.Trim()));
             output.Append(" ");
         }
-        
-        // All replace words should be done first
-        
-
-// More agressive rules should be done after
-        
-//text = text.Replace("N", "NY"); // Maybe only if there is a vowel after? No = Nyo Never = Nyever ??
-//text = text.Replace("n", "ny");
-
-// Should actually build a new string from the old one instead of overwriting the same string!!!
-
-// Needs some Rawr XD or just Raws
-// Nuzzles and wuzzles 
-// *wags tail*
-// Any word ending in y can rookie wookie cookie wookie
-//auntie wauntie <-- notice the vowel stays
-// corgie worgie
-// aie <- should only be words with two syllables. How to figure that out?
-// Same sylable rule with words ending in Y
-// Why
-// Fucksy 
-// Uwus
-// lots of ~
-// <:
-// OwO UwU oWo
-// >v<
-        return output.ToString().Trim();
+        return InsertFurryTokens(output.ToString()).Trim();
     }
 
     private static string TranslateToken(string token)
     {
-        _ = TryReplaceGlobal(token, out token);
+        bool globalReplaced = TryReplaceGlobal(token, out token);
         
         if (TryReplaceWord(token, out string wordReplacement))
             return wordReplacement;
@@ -134,8 +174,8 @@ public class FurryTranslator
         if (TryReplaceRegex(token, out string regexReplacement))
             return regexReplacement;
 
-        if (TryReplaceExclusive(token, out string globalReplacement))
-            return globalReplacement;
+        if (!globalReplaced && TryReplaceLW(token, out string lwReplacement))
+            return lwReplacement;
         
         return token;
     }
@@ -167,19 +207,17 @@ public class FurryTranslator
         return false;
     }
     
-    private static bool TryReplaceExclusive(string token, out string output)
+    private static bool TryReplaceLW(string token, out string output)
     {
-        foreach (var exclusiveReplacement in ExclusiveReplacements)
+        if (token.StartsWith("l") || token.StartsWith("r") ||
+            token.EndsWith("l") || token.EndsWith("r"))
         {
-            if (token.Contains(exclusiveReplacement.Item1))
-            {
-                output = token.Replace(exclusiveReplacement.Item1, exclusiveReplacement.Item2);
-                return true;
-            }
+            output = string.Empty;
+            return false;
         }
 
-        output = string.Empty;
-        return false;
+        output = token.Replace("l", "w").Replace("r", "w");
+        return true;
     }
     
     private static bool TryReplaceGlobal(string token, out string output)
@@ -199,5 +237,36 @@ public class FurryTranslator
         if (anyMatch) return true;
         
         return false;
+    }
+
+    private static string InsertFurryTokens(string input)
+    {
+        return InsertEndTokens(InsertMiddleTokens(input));
+    }
+
+    private static string InsertMiddleTokens(string input)
+    {
+        StringBuilder builder = new StringBuilder();
+        string[] tokens = input.Split(" ");
+        foreach (var token in tokens)
+        {
+            builder.Append(token);
+            builder.Append(" ");
+            if (_random.NextDouble() < MiddleTokenChance)
+            {
+                builder.Append(MiddleTokens[_random.Next(MiddleTokens.Count)]);
+                builder.Append(" ");
+            }
+        }
+        return builder.ToString().Trim();
+    }
+    
+    private static string InsertEndTokens(string input)
+    {
+        if (_random.NextDouble() < EndTokenChance)
+        {
+            return input + " " + EndTokens[_random.Next(EndTokens.Count)];
+        }
+        return input;
     }
 }
