@@ -35,7 +35,7 @@ public class MicropadCommand : ICommand
             .WithUrl("https://getmicropad.com/")
             .WithDescription("A powerful note-taking app that helps you organise + take notes without restrictions.")
             .WithColor(new Color(253, 178, 0))
-            .WithFooter($"MicroPad: The free and open source note taking app.");
-        await command.FollowupAsync(embed: embed.Build());
+            .WithFooter($"MicroPad: The free and open source note taking app.\nClick on the μPad link above to get it today!");
+        await command.RespondAsync(embed: embed.Build(), ephemeral: false);
     }
 }
