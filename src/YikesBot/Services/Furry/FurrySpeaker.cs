@@ -59,17 +59,45 @@ public class FurrySpeaker
         }
     }
     
-    private async Task DiscordClientOnMessageReceived(SocketMessage arg)
+    private async Task DiscordClientOnMessageReceived(SocketMessage message)
     {
-        if (arg.Author.IsBot || arg.Author.Id == _discordBot.DiscordClient.CurrentUser.Id) return;
-        if (!_enabledChannels.ContainsKey(arg.Channel.Id)) return;
+        if (message.Author.IsBot || message.Author.Id == _discordBot.DiscordClient.CurrentUser.Id) return;
+        if (!_enabledChannels.ContainsKey(message.Channel.Id)) return;
         
-        _deletedMessagesLogger.IgnoreMessage(arg.Id);
-        await arg.DeleteAsync();
+        _deletedMessagesLogger.IgnoreMessage(message.Id);
+        await message.DeleteAsync();
 
-        DiscordWebhookClient client = new DiscordWebhookClient(_enabledChannels[arg.Channel.Id]);
+        DiscordWebhookClient client = new DiscordWebhookClient(_enabledChannels[message.Channel.Id]);
 
-        await client.SendMessageAsync(FurryTranslator.Translate(arg.Content), username: arg.Author.Username,
-            avatarUrl: arg.Author.GetAvatarUrl(), allowedMentions: AllowedMentions.None);
+
+        Dictionary<string, FileAttachment> newAttachments = new();
+        foreach (var attachment in message.Attachments)
+        {
+            if (!attachment.ContentType.StartsWith("image")) continue;
+
+            string path = Path.GetTempFileName();
+            using (var httpClient = new HttpClient())
+            await using (var s = await httpClient.GetStreamAsync(attachment.Url))
+            await using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+                await s.CopyToAsync(fs);
+            
+            newAttachments.Add(path, new FileAttachment(path, attachment.Filename, attachment.Description, attachment.IsSpoiler()));
+        }
+
+        if (newAttachments.Any())
+        {
+            await client.SendFilesAsync(newAttachments.Values, FurryTranslator.Translate(message.Content), username: message.Author.Username,
+                avatarUrl: message.Author.GetAvatarUrl(), allowedMentions: AllowedMentions.None);   
+        }
+        else
+        {
+            await client.SendMessageAsync(FurryTranslator.Translate(message.Content), username: message.Author.Username,
+                avatarUrl: message.Author.GetAvatarUrl(), allowedMentions: AllowedMentions.None);   
+        }
+
+        foreach (var attachment in newAttachments)
+        {
+            File.Delete(attachment.Key);
+        }
     }
 }
