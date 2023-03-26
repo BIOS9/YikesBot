@@ -8,11 +8,16 @@ public class MessageContentHandler
 {
     private readonly ILogger<MessageContentHandler> _logger;
     private readonly DiscordBot _discordBot;
+    private readonly IEnumerable<IContentHandler> _contentHandlers;
     
-    public MessageContentHandler(ILogger<MessageContentHandler> logger, DiscordBot discordBot)
+    public MessageContentHandler(
+        ILogger<MessageContentHandler> logger,
+        DiscordBot discordBot,
+        IEnumerable<IContentHandler> contentHandlers)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _discordBot = discordBot ?? throw new ArgumentNullException(nameof(discordBot));
+        _contentHandlers = contentHandlers ?? throw new ArgumentNullException(nameof(contentHandlers));
     }
 
     public void Start()
@@ -25,8 +30,18 @@ public class MessageContentHandler
         _discordBot.DiscordClient.MessageReceived -= DiscordClientOnMessageReceived;
     }
 
-    private Task DiscordClientOnMessageReceived(SocketMessage arg)
+    private async Task DiscordClientOnMessageReceived(SocketMessage message)
     {
-        throw new NotImplementedException();
+        if (message.Author.IsBot || message.Author.Id == _discordBot.DiscordClient.CurrentUser.Id)
+            return;
+        
+        foreach (var handler in _contentHandlers)
+        {
+            if (await handler.ExecuteAsync(message))
+            {
+                _logger.LogInformation("Executed message content handler: {Handler}", handler.Name);
+                return;
+            }
+        }
     }
 }
