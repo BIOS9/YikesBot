@@ -69,6 +69,14 @@ public class FurrySpeaker
         if (message.Author.IsBot || message.Author.Id == _discordBot.DiscordClient.CurrentUser.Id) return;
         if (!_enabledChannels.ContainsKey(message.Channel.Id)) return;
         
+        // Check if a user posted the message
+        if (!(message is SocketUserMessage msg))
+            return;
+
+        // Check if it is not a DM
+        if (!(message.Author is SocketGuildUser author))
+            return;
+
         _deletedMessagesLogger.IgnoreMessage(message.Id);
         await message.DeleteAsync();
 
@@ -90,12 +98,14 @@ public class FurrySpeaker
 
         if (newAttachments.Any())
         {
-            await client.SendFilesAsync(newAttachments.Values, FurryTranslator.Translate(message.Content), username: message.Author.Username,
+            await client.SendFilesAsync(newAttachments.Values, FurryTranslator.Translate(message.Content),
+                username: string.IsNullOrEmpty(author.Nickname) ? author.Username : author.Nickname,
                 avatarUrl: message.Author.GetAvatarUrl(), allowedMentions: AllowedMentions.None);   
         }
         else
         {
-            await client.SendMessageAsync(FurryTranslator.Translate(message.Content), username: message.Author.Username,
+            await client.SendMessageAsync(FurryTranslator.Translate(message.Content),
+                username: string.IsNullOrEmpty(author.Nickname) ? author.Username : author.Nickname,
                 avatarUrl: message.Author.GetAvatarUrl(), allowedMentions: AllowedMentions.None);   
         }
 
