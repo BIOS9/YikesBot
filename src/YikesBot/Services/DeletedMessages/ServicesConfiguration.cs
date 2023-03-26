@@ -6,7 +6,7 @@ public static class ServicesConfiguration
 {
     public static IServiceCollection AddDeletedMessagesLogger(this IServiceCollection services)
     {
-        services.AddTransient<DeletedMessagesLogger>();
+        services.AddSingleton<DeletedMessagesLogger>();
         return services;
     }
 }

@@ -4,6 +4,7 @@ using Discord.Webhook;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using YikesBot.Services.Bot;
+using YikesBot.Services.DeletedMessages;
 
 namespace YikesBot.Services.Furry;
 
@@ -11,13 +12,18 @@ public class FurrySpeaker
 {
     private readonly ILogger<FurrySpeaker> _logger;
     private readonly DiscordBot _discordBot;
+    private readonly DeletedMessagesLogger _deletedMessagesLogger;
     private readonly ConcurrentDictionary<ulong, string> _enabledChannels = new();
     public ISet<ulong> EnabledChannels => _enabledChannels.Keys.ToHashSet();
     
-    public FurrySpeaker(ILogger<FurrySpeaker> logger, DiscordBot discordBot)
+    public FurrySpeaker(
+        ILogger<FurrySpeaker> logger,
+        DiscordBot discordBot,
+        DeletedMessagesLogger deletedMessagesLogger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _discordBot = discordBot ?? throw new ArgumentNullException(nameof(discordBot));
+        _deletedMessagesLogger = deletedMessagesLogger ?? throw new ArgumentNullException(nameof(deletedMessagesLogger));
     }
 
     public void Start()
@@ -58,6 +64,7 @@ public class FurrySpeaker
         if (arg.Author.IsBot || arg.Author.Id == _discordBot.DiscordClient.CurrentUser.Id) return;
         if (!_enabledChannels.ContainsKey(arg.Channel.Id)) return;
         
+        _deletedMessagesLogger.IgnoreMessage(arg.Id);
         await arg.DeleteAsync();
 
         DiscordWebhookClient client = new DiscordWebhookClient(_enabledChannels[arg.Channel.Id]);
