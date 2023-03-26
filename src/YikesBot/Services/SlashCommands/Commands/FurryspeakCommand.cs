@@ -29,6 +29,11 @@ public class FurryspeakCommand : ICommand
                 ApplicationCommandOptionType.Boolean,
                 "True to enable furry speak, false to disable.",
                 true)
+            .AddOption(
+                "webhook",
+                ApplicationCommandOptionType.String,
+                "A webhook URL for the current channel. (Will remove this later)",
+                true)
             .Build();
     }
 
@@ -48,9 +53,10 @@ public class FurryspeakCommand : ICommand
         }
 
         bool enabled = (bool)command.Data.Options.First().Value;
+        string webhook = (string)command.Data.Options.Skip(1).First().Value;
         if (enabled)
         {
-            _furrySpeaker.EnableChannel(textChannel);
+            _furrySpeaker.EnableChannel(textChannel, webhook);
             await command.RespondAsync("OwO wats dis? Furry speak has just been enabwed in dis channew~ rawr xD UwU *pees*", ephemeral: true);
         }
         else
