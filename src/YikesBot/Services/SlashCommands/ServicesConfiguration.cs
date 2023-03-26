@@ -11,6 +11,7 @@ public static class ServicesConfiguration
         services.AddSingleton<SlashCommandHandler>();
         services.AddScoped<ICommand, PurgeCommand>();
         services.AddScoped<ICommand, MicropadCommand>();
+        services.AddScoped<ICommand, FurryspeakCommand>();
         return services;
     }
 }
