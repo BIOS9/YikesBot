@@ -6,6 +6,7 @@ namespace YikesBot.Services.Furry;
 
 public class FurryTranslator
 {
+    // Replaces single words
     private static readonly Dictionary<string, string> WordReplacements = new()
     {
         {"the", "teh"},
@@ -32,21 +33,30 @@ public class FurryTranslator
         {"awesome", "pawsome"},
     };
 
+    // Replaces tokens with regex rules
     private static readonly List<Tuple<Regex, string>> RegexReplacements = new()
     {
         new Tuple<Regex, string>(new Regex(@"ahh+"), "murrrr")
     };
     
-    private static readonly List<Tuple<string, string>> GlobalReplacements = new()
+    // Replacements that only occur when no other replacements have happened (except global)
+    private static readonly List<Tuple<string, string>> ExclusiveReplacements = new()
     {
-        new Tuple<string, string>("for", "fur"),
-        new Tuple<string, string>("fuck", "fluff"),
-        new Tuple<string, string>("r", "w"),
-        new Tuple<string, string>("l", "w"),
-        new Tuple<string, string>(",", "~"),
-        new Tuple<string, string>(".", "~"),
-        new Tuple<string, string>("!", " owo!"),
-        new Tuple<string, string>("?", " uwu?")
+        
+    };
+        
+    // Always replaces these tokens inside other tokens no matter what
+    // The boolean parameter at the end is if the replacer should stop if it matches this rule
+    private static readonly List<Tuple<string, string, bool>> GlobalReplacements = new()
+    {
+        new Tuple<string, string, bool>("for", "fur", true),
+        new Tuple<string, string, bool>("r", "w", false),
+        new Tuple<string, string, bool>("l", "w", false),
+        new Tuple<string, string, bool>("fuck", "fluff", true),
+        new Tuple<string, string, bool>(",", "~", false),
+        new Tuple<string, string, bool>(".", "~", false),
+        new Tuple<string, string, bool>("!", " owo!", false),
+        new Tuple<string, string, bool>("?", " uwu?", false)
     };
 
     public static string Translate(string text)
@@ -88,13 +98,15 @@ public class FurryTranslator
 
     private static string TranslateToken(string token)
     {
+        _ = TryReplaceGlobal(token, out token);
+        
         if (TryReplaceWord(token, out string wordReplacement))
             return wordReplacement;
         
         if (TryReplaceRegex(token, out string regexReplacement))
             return regexReplacement;
 
-        if (TryReplaceGlobal(token, out string globalReplacement))
+        if (TryReplaceExclusive(token, out string globalReplacement))
             return globalReplacement;
         
         return token;
@@ -127,18 +139,37 @@ public class FurryTranslator
         return false;
     }
     
-    private static bool TryReplaceGlobal(string token, out string output)
+    private static bool TryReplaceExclusive(string token, out string output)
     {
-        foreach (var globalReplacement in GlobalReplacements)
+        foreach (var exclusiveReplacement in ExclusiveReplacements)
         {
-            if (token.Contains(globalReplacement.Item1))
+            if (token.Contains(exclusiveReplacement.Item1))
             {
-                output = token.Replace(globalReplacement.Item1, globalReplacement.Item2);
+                output = token.Replace(exclusiveReplacement.Item1, exclusiveReplacement.Item2);
                 return true;
             }
         }
 
         output = string.Empty;
+        return false;
+    }
+    
+    private static bool TryReplaceGlobal(string token, out string output)
+    {
+        bool anyMatch = false;
+        output = token;
+        foreach (var globalReplacement in GlobalReplacements)
+        {
+            if (token.Contains(globalReplacement.Item1))
+            {
+                anyMatch = true;
+                output = output.Replace(globalReplacement.Item1, globalReplacement.Item2);
+                if (globalReplacement.Item3) return true; // Return if stop on this rule is set
+            }
+        }
+
+        if (anyMatch) return true;
+        
         return false;
     }
 }
