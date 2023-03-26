@@ -1,0 +1,10 @@
+---
+version: "2.1"
+services:
+  linkshortener:
+    image: ghcr.io/bios9/yikesbot:latest
+    container_name: yikesbot
+    environment:
+      - DiscordBot__Token=<discord_bot_token>
+      - Serilog__MinimumLevel=Information
+    restart: unless-stopped
