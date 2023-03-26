@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using YikesBot.Services.Bot;
@@ -51,8 +52,12 @@ public class FurrySpeaker
         }
     }
     
-    private Task DiscordClientOnMessageReceived(SocketMessage arg)
+    private async Task DiscordClientOnMessageReceived(SocketMessage arg)
     {
+        if (arg.Author.IsBot || arg.Author.Id == _discordBot.DiscordClient.CurrentUser.Id) return;
+        if (!_enabledChannels.ContainsKey(arg.Channel.Id)) return;
         
+        await arg.DeleteAsync();
+        await arg.Channel.SendMessageAsync(FurryTranslator.Translate(arg.Content));
     }
 }
