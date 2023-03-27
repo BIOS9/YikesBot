@@ -44,8 +44,12 @@ public class FurryTranslator
         {"admins", "owners"},
         {"furry", ":sparkles: furry :sparkles: :fox:"},
         {"stash", "yiff stash"},
+        {"admin-furry-stash", "admin-furry-yiff-stash"},
+        {"#admin-furry-stash", "#admin-furry-yiff-stash"},
+        {"fursuit", "fursuit"}, // Dont replace
         {"shit", "dog poop"},
         {"so", "s-s-so"},
+        {"oh", "o-o-oh"},
         {"furries", ":sparkles: furries :sparkles:"},
         {"please", "pwease :pleading_face:"},
     };
@@ -156,7 +160,7 @@ public class FurryTranslator
     public static string Translate(string text)
     {
         StringBuilder output = new StringBuilder();
-        foreach (var token in Regex.Split(text.ToLower(), @"\s"))
+        foreach (var token in Regex.Split(text, @"\s"))
         {
             output.Append(TranslateToken(token.Trim()));
             output.Append(" ");
@@ -166,18 +170,26 @@ public class FurryTranslator
 
     private static string TranslateToken(string token)
     {
-        bool globalReplaced = TryReplaceGlobal(token, out token);
+        if (Uri.TryCreate(token, UriKind.Absolute, out Uri? uriResult)
+            && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+        {
+            return token; // Skip URLs
+        }
+
+        string lowerToken = token.ToLower();
         
-        if (TryReplaceWord(token, out string wordReplacement))
+        bool globalReplaced = TryReplaceGlobal(lowerToken, out lowerToken);
+        
+        if (TryReplaceWord(lowerToken, out string wordReplacement))
             return wordReplacement;
         
-        if (TryReplaceRegex(token, out string regexReplacement))
+        if (TryReplaceRegex(lowerToken, out string regexReplacement))
             return regexReplacement;
 
-        if (!globalReplaced && TryReplaceLW(token, out string lwReplacement))
+        if (!globalReplaced && TryReplaceLW(lowerToken, out string lwReplacement))
             return lwReplacement;
         
-        return token;
+        return lowerToken;
     }
 
     private static bool TryReplaceWord(string token, out string output)
