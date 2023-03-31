@@ -3,6 +3,7 @@ using YikesBot.Services.Bot;
 using YikesBot.Services.DeletedMessages;
 using YikesBot.Services.Furry;
 using YikesBot.Services.MessageContent;
+using YikesBot.Services.MessageReactions;
 using YikesBot.Services.SlashCommands;
 
 namespace YikesBot;
@@ -12,6 +13,7 @@ public class Startup : IHostedService
     private readonly DiscordBot _discordBot;
     private readonly DeletedMessagesLogger _deletedMessagesLogger;
     private readonly MessageContentHandler _messageContentHandler;
+    private readonly MessageReactionHandler _messageReactionHandler;
     private readonly FurrySpeaker _furrySpeaker;
     private readonly SlashCommandHandler _slashCommandHandler;
 
@@ -19,6 +21,7 @@ public class Startup : IHostedService
         DiscordBot discordBot,
         DeletedMessagesLogger deletedMessagesLogger,
         MessageContentHandler messageContentHandler,
+        MessageReactionHandler messageReactionHandler,
         SlashCommandHandler slashCommandHandler,
         FurrySpeaker furrySpeaker)
     {
@@ -28,6 +31,8 @@ public class Startup : IHostedService
             deletedMessagesLogger ?? throw new ArgumentNullException(nameof(deletedMessagesLogger));
         _messageContentHandler =
             messageContentHandler ?? throw new ArgumentNullException(nameof(messageContentHandler));
+        _messageReactionHandler =
+            messageReactionHandler ?? throw new ArgumentNullException(nameof(messageReactionHandler));
         _slashCommandHandler =
             slashCommandHandler ?? throw new ArgumentNullException(nameof(slashCommandHandler));
     }
@@ -37,6 +42,7 @@ public class Startup : IHostedService
         await _discordBot.StartAsync(cancellationToken);
         _deletedMessagesLogger.Start();
         _messageContentHandler.Start();
+        _messageReactionHandler.Start();
         _furrySpeaker.Start();
         _slashCommandHandler.Start();
     }
@@ -45,6 +51,7 @@ public class Startup : IHostedService
     {
         _slashCommandHandler.Stop();
         _furrySpeaker.Stop();
+        _messageReactionHandler.Stop();
         _messageContentHandler.Stop();
         _deletedMessagesLogger.Stop();
         await _discordBot.StartAsync(cancellationToken);
