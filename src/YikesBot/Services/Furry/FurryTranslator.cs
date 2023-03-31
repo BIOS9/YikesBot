@@ -19,6 +19,7 @@ public class FurryTranslator
         {"lmao", "hehe~"},
         {"love", "wuv :heart:"},
         {"this", "dis"},
+        {"then", "den"},
         {"your", "ur"},
         {"you", "chu"},
         {"what", "OwO wat"},
