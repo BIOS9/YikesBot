@@ -7,6 +7,7 @@ using YikesBot.Services.Bot;
 using YikesBot.Services.DeletedMessages;
 using YikesBot.Services.Furry;
 using YikesBot.Services.MessageContent;
+using YikesBot.Services.MessageReactions;
 using YikesBot.Services.SlashCommands;
 
 await Host.CreateDefaultBuilder(args)
@@ -24,6 +25,7 @@ await Host.CreateDefaultBuilder(args)
             .AddSlashCommands()
             .AddFurrySpeaker()
             .AddMessageContentHandler()
+            .AddMessageReactionHandler()
             .AddDeletedMessagesLogger();
     })
     .Build()
