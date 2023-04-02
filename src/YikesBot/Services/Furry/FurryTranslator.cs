@@ -171,11 +171,11 @@ public class FurryTranslator
 
     private static string TranslateToken(string token)
     {
-        // if (Uri.TryCreate(token, UriKind.Absolute, out Uri? uriResult)
-        //     && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
-        // {
-        //     return token; // Skip URLs
-        // }
+        if (Uri.TryCreate(token, UriKind.Absolute, out Uri? uriResult)
+            && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+        {
+            return token; // Skip URLs
+        }
 
         string lowerToken = token.ToLower();
         
