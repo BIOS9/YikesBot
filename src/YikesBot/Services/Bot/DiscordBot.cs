@@ -3,11 +3,16 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using YikesBot.Services.SlashCommands;
 
 namespace YikesBot.Services.Bot;
 
 public class DiscordBot : IHostedService
 {
+    private readonly ILogger<DiscordSocketClient> _botLogger;
+
+    private readonly ILogger<DiscordBot> _logger;
+
     private readonly IReadOnlyDictionary<LogSeverity, LogLevel>
         _logLevelMap = // Maps Discord.NET logging levels to Microsoft extensions logging levels.
             new Dictionary<LogSeverity, LogLevel>
@@ -19,15 +24,19 @@ public class DiscordBot : IHostedService
                 { LogSeverity.Error, LogLevel.Error },
                 { LogSeverity.Critical, LogLevel.Critical }
             };
-    
-    public required ILogger<DiscordSocketClient> BotLogger { protected get; init; }
-    public required ILogger<DiscordBot> Logger { protected get; init; }
-    public required IOptions<DiscordBotOptions> Options { protected get; init; }
-    private DiscordBotOptions Config => Options.Value;
+
+    private readonly DiscordBotOptions _options;
     public readonly DiscordSocketClient DiscordClient;
 
-    public DiscordBot()
+    public DiscordBot(
+        ILoggerFactory loggerFactory,
+        IOptions<DiscordBotOptions> options)
     {
+        if (loggerFactory == null) throw new ArgumentNullException(nameof(loggerFactory));
+        _logger = loggerFactory.CreateLogger<DiscordBot>();
+        _botLogger = loggerFactory.CreateLogger<DiscordSocketClient>();
+        _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+
         DiscordClient = new DiscordSocketClient(new DiscordSocketConfig
         {
             LogLevel = LogSeverity.Verbose,
@@ -46,16 +55,16 @@ public class DiscordBot : IHostedService
     private Task DiscordClientOnLog(LogMessage arg)
     {
         var level = _logLevelMap[arg.Severity];
-        BotLogger.Log(level, arg.Exception, "{source} {message}", arg.Source, arg.Message);
+        _botLogger.Log(level, arg.Exception, "{source} {message}", arg.Source, arg.Message);
         return Task.CompletedTask;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        Logger.LogInformation("Discord bot starting");
-        await DiscordClient.LoginAsync(TokenType.Bot, Config.Token);
+        _logger.LogInformation("Discord bot starting");
+        await DiscordClient.LoginAsync(TokenType.Bot, _options.Token);
         await DiscordClient.StartAsync();
-        Logger.LogInformation("Discord bot running");
+        _logger.LogInformation("Discord bot running");
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
