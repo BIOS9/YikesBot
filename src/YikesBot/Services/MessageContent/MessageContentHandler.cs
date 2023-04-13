@@ -1,10 +1,11 @@
 ﻿using Discord.WebSocket;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using YikesBot.Services.Bot;
 
 namespace YikesBot.Services.MessageContent;
 
-public class MessageContentHandler
+public class MessageContentHandler : IHostedService
 {
     private readonly ILogger<MessageContentHandler> _logger;
     private readonly DiscordBot _discordBot;
@@ -20,14 +21,16 @@ public class MessageContentHandler
         _contentHandlers = contentHandlers ?? throw new ArgumentNullException(nameof(contentHandlers));
     }
 
-    public void Start()
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         _discordBot.DiscordClient.MessageReceived += DiscordClientOnMessageReceived;
+        return Task.CompletedTask;
     }
 
-    public void Stop()
+    public Task StopAsync(CancellationToken cancellationToken)
     {
         _discordBot.DiscordClient.MessageReceived -= DiscordClientOnMessageReceived;
+        return Task.CompletedTask;
     }
 
     private async Task DiscordClientOnMessageReceived(SocketMessage message)

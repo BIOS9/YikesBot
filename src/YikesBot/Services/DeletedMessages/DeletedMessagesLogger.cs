@@ -2,12 +2,13 @@
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using YikesBot.Services.Bot;
 
 namespace YikesBot.Services.DeletedMessages;
 
-public class DeletedMessagesLogger
+public class DeletedMessagesLogger : IHostedService
 {
     private const string LogChannelName = "deleted-messages";
 
@@ -21,17 +22,19 @@ public class DeletedMessagesLogger
         _discordBot = discordBot ?? throw new ArgumentNullException(nameof(discordBot));
     }
 
-    public void Start()
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         _discordBot.DiscordClient.MessageDeleted += DiscordClientOnMessageDeleted;
         _discordBot.DiscordClient.GuildAvailable += CreateLogChannelAsync;
+        return Task.CompletedTask;
     }
-    
-    public void Stop()
+
+    public Task StopAsync(CancellationToken cancellationToken)
     {
         _ignoredMessages.Clear();
         _discordBot.DiscordClient.MessageDeleted -= DiscordClientOnMessageDeleted;
         _discordBot.DiscordClient.GuildAvailable -= CreateLogChannelAsync;
+        return Task.CompletedTask;
     }
 
     public void IgnoreMessage(ulong messageId)
