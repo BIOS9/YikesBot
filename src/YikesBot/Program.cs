@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using YikesBot;
 using YikesBot.Services.Bot;
 using YikesBot.Services.DeletedMessages;
 using YikesBot.Services.Furry;
@@ -17,16 +17,15 @@ await Host.CreateDefaultBuilder(args)
         config.AddUserSecrets<Program>();
     })
     .UseSerilog((context, config) => { config.ReadFrom.Configuration(context.Configuration); })
-    .ConfigureServices((context, services) =>
+    .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+    .ConfigureContainer<ContainerBuilder>((context, builder) =>
     {
-        services
-            .AddHostedService<Startup>()
-            .AddDiscordBot(context.Configuration)
-            .AddSlashCommands()
-            .AddFurrySpeaker()
-            .AddMessageContentHandler()
-            .AddMessageReactionHandler()
-            .AddDeletedMessagesLogger();
+        builder.RegisterModule(new BotModule(context.Configuration));
+        builder.RegisterModule(new SlashCommandsModule());
+        builder.RegisterModule(new FurryModule());
+        builder.RegisterModule(new MessageContentModule());
+        builder.RegisterModule(new MessageReactionsModule());
+        builder.RegisterModule(new DeletedMessagesModule());
     })
     .Build()
     .RunAsync();
