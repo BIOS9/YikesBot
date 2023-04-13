@@ -6,5 +6,6 @@ services:
     container_name: yikesbot
     environment:
       - DiscordBot__Token=<discord_bot_token>
+      - DiscordBot__StatusText=github.com/BIOS9/YikesBot
       - Serilog__MinimumLevel=Information
     restart: unless-stopped
