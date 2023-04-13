@@ -19,8 +19,7 @@ public class BotModule : Module
         builder.RegisterType<DiscordBot>()
             .AsSelf()
             .As<IHostedService>()
-            .SingleInstance()
-            .PropertiesAutowired();
+            .SingleInstance();
         builder.ConfigureWithValidation<DiscordBotOptions>(
             _configuration.GetExistingSectionOrThrow(DiscordBotOptions.Name));
     }
