@@ -3,13 +3,14 @@ using Discord;
 using Discord.Rest;
 using Discord.Webhook;
 using Discord.WebSocket;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using YikesBot.Services.Bot;
 using YikesBot.Services.DeletedMessages;
 
 namespace YikesBot.Services.Furry;
 
-public class FurrySpeaker
+public class FurrySpeaker : IHostedService
 {
     private readonly ILogger<FurrySpeaker> _logger;
     private readonly DiscordBot _discordBot;
@@ -27,14 +28,16 @@ public class FurrySpeaker
         _deletedMessagesLogger = deletedMessagesLogger ?? throw new ArgumentNullException(nameof(deletedMessagesLogger));
     }
 
-    public void Start()
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         _discordBot.DiscordClient.MessageReceived += DiscordClientOnMessageReceived;
+        return Task.CompletedTask;
     }
-    
-    public void Stop()
+
+    public Task StopAsync(CancellationToken cancellationToken)
     {
         _discordBot.DiscordClient.MessageReceived -= DiscordClientOnMessageReceived;
+        return Task.CompletedTask;
     }
 
     public async Task EnableChannelAsync(SocketTextChannel channel)

@@ -1,11 +1,12 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using YikesBot.Services.Bot;
 
 namespace YikesBot.Services.MessageReactions;
 
-public class MessageReactionHandler
+public class MessageReactionHandler : IHostedService
 {
     private readonly ILogger<MessageReactionHandler> _logger;
     private readonly DiscordBot _discordBot;
@@ -21,16 +22,18 @@ public class MessageReactionHandler
         _reactionHandlers = reactionHandlers ?? throw new ArgumentNullException(nameof(reactionHandlers));
     }
 
-    public void Start()
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         _discordBot.DiscordClient.ReactionAdded += DiscordClientOnReactionAdded;
+        return Task.CompletedTask;
     }
 
-    public void Stop()
+    public Task StopAsync(CancellationToken cancellationToken)
     {
         _discordBot.DiscordClient.ReactionAdded -= DiscordClientOnReactionAdded;
+        return Task.CompletedTask;
     }
-    
+
     private async Task DiscordClientOnReactionAdded(
         Cacheable<IUserMessage, ulong> cachableMessage, 
         Cacheable<IMessageChannel, ulong> cachableChannel, 

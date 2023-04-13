@@ -1,12 +1,13 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using YikesBot.Services.SlashCommands;
 
 namespace YikesBot.Services.Bot;
 
-public class DiscordBot
+public class DiscordBot : IHostedService
 {
     private readonly ILogger<DiscordSocketClient> _botLogger;
 

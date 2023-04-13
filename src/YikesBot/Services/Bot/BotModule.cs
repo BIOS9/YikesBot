@@ -16,7 +16,11 @@ public class BotModule : Module
 
     protected override void Load(ContainerBuilder builder)
     {
-        builder.RegisterType<DiscordBot>().AsSelf().As<IHostedService>().SingleInstance().PropertiesAutowired();
+        builder.RegisterType<DiscordBot>()
+            .AsSelf()
+            .As<IHostedService>()
+            .SingleInstance()
+            .PropertiesAutowired();
         builder.ConfigureWithValidation<DiscordBotOptions>(
             _configuration.GetExistingSectionOrThrow(DiscordBotOptions.Name));
     }

@@ -1,13 +1,14 @@
 ﻿using Discord;
 using Discord.Net;
 using Discord.WebSocket;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using YikesBot.Services.Bot;
 
 namespace YikesBot.Services.SlashCommands;
 
-public class SlashCommandHandler
+public class SlashCommandHandler : IHostedService
 {
     private readonly DiscordSocketClient _discordClient;
     private readonly ILogger<SlashCommandHandler> _logger;
@@ -26,18 +27,20 @@ public class SlashCommandHandler
         _commands = commands ?? throw new ArgumentNullException(nameof(commands));
     }
 
-    public void Start()
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogDebug("Hooking slash command events...");
         _discordClient.Ready += DiscordClientOnReady;
         _discordClient.SlashCommandExecuted += DiscordClientOnSlashCommandExecuted;
+        return Task.CompletedTask;
     }
-    
-    public void Stop()
+
+    public Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogDebug("Unhooking slash command events...");
         _discordClient.Ready -= DiscordClientOnReady;
         _discordClient.SlashCommandExecuted -= DiscordClientOnSlashCommandExecuted;
+        return Task.CompletedTask;
     }
 
     private async Task DiscordClientOnReady()
