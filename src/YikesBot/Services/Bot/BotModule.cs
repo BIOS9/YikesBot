@@ -1,16 +1,15 @@
 ﻿using Autofac;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using YikesBot.Helpers;
 
 namespace YikesBot.Services.Bot;
 
-public class DiscordBotModule : Module
+public class BotModule : Module
 {
     private readonly IConfiguration _configuration;
 
-    public DiscordBotModule(IConfiguration configuration)
+    public BotModule(IConfiguration configuration)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
