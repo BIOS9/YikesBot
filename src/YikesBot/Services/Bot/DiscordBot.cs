@@ -62,6 +62,7 @@ public class DiscordBot : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Discord bot starting");
+        await DiscordClient.SetGameAsync(_options.StatusText);
         await DiscordClient.LoginAsync(TokenType.Bot, _options.Token);
         await DiscordClient.StartAsync();
         _logger.LogInformation("Discord bot running");
