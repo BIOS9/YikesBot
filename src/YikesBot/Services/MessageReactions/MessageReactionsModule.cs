@@ -3,7 +3,7 @@ using YikesBot.Services.MessageReactions.ReactionHandlers;
 
 namespace YikesBot.Services.MessageReactions;
 
-public class MessageReactions : Module
+public class MessageReactionsModule : Module
 {
     protected override void Load(ContainerBuilder builder)
     {
