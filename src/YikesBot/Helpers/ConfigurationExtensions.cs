@@ -1,6 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+﻿using Autofac;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace YikesBot.Helpers;
@@ -27,40 +26,45 @@ public static class ConfigurationHelpers
         return configurationSection;
     }
 
-    public static IServiceCollection ConfigureWithValidation<TOptions>(this IServiceCollection services,
+    public static ContainerBuilder ConfigureWithValidation<TOptions>(this ContainerBuilder builder,
         IConfiguration config) where TOptions : class
     {
-        return services.ConfigureWithValidation<TOptions>(Options.DefaultName, config);
+        return builder.ConfigureWithValidation<TOptions>(Options.DefaultName, config);
     }
 
-    public static IServiceCollection ConfigureWithValidation<TOptions>(this IServiceCollection services, string name,
+    public static ContainerBuilder ConfigureWithValidation<TOptions>(this ContainerBuilder builder, string name,
         IConfiguration config) where TOptions : class
     {
         _ = config ?? throw new ArgumentNullException(nameof(config));
-        services.Configure<TOptions>(name, config);
-        services.AddDataAnnotationValidatedOptions<TOptions>(name);
-        return services;
+
+        builder.RegisterInstance<IOptionsChangeTokenSource<TOptions>>(new ConfigurationChangeTokenSource<TOptions>(name, config))
+            .SingleInstance();
+        builder.RegisterInstance<IConfigureOptions<TOptions>>(new NamedConfigureFromConfigurationOptions<TOptions>(name, config, _ => { }))
+            .SingleInstance();
+        builder.AddDataAnnotationValidatedOptions<TOptions>(name);
+        return builder;
     }
 
-    public static IServiceCollection ConfigureWithValidation<TOptions>(this IServiceCollection services,
+    public static ContainerBuilder ConfigureWithValidation<TOptions>(this ContainerBuilder builder,
         Action<TOptions> configureOptions) where TOptions : class
     {
-        return services.ConfigureWithValidation(Options.DefaultName, configureOptions);
+        return builder.ConfigureWithValidation(Options.DefaultName, configureOptions);
     }
 
-    public static IServiceCollection ConfigureWithValidation<TOptions>(this IServiceCollection services, string name,
+    public static ContainerBuilder ConfigureWithValidation<TOptions>(this ContainerBuilder builder, string name,
         Action<TOptions> configureOptions) where TOptions : class
     {
-        services.Configure(name, configureOptions);
-        services.AddDataAnnotationValidatedOptions<TOptions>(name);
-        return services;
+        builder.RegisterInstance<IConfigureOptions<TOptions>>(new ConfigureNamedOptions<TOptions>(name, configureOptions))
+            .SingleInstance();
+        builder.AddDataAnnotationValidatedOptions<TOptions>(name);
+        return builder;
     }
 
-    private static IServiceCollection AddDataAnnotationValidatedOptions<TOptions>(this IServiceCollection services,
+    private static ContainerBuilder AddDataAnnotationValidatedOptions<TOptions>(this ContainerBuilder builder,
         string name) where TOptions : class
     {
-        services.TryAddEnumerable(
-            ServiceDescriptor.Singleton<IValidateOptions<TOptions>>(new DataAnnotationValidateOptions<TOptions>(name)));
-        return services;
+        builder.RegisterInstance<IValidateOptions<TOptions>>(new DataAnnotationValidateOptions<TOptions>(name))
+            .SingleInstance();
+        return builder;
     }
 }
