@@ -48,8 +48,6 @@ public class DiscordBot : IHostedService
                              | GatewayIntents.GuildMessages
                              | GatewayIntents.GuildMessageReactions
         });
-
-        DiscordClient.Log += DiscordClientOnLog;
     }
 
     private Task DiscordClientOnLog(LogMessage arg)
@@ -62,6 +60,7 @@ public class DiscordBot : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Discord bot starting");
+        DiscordClient.Log += DiscordClientOnLog;
         await DiscordClient.SetGameAsync(_options.StatusText);
         await DiscordClient.LoginAsync(TokenType.Bot, _options.Token);
         await DiscordClient.StartAsync();
@@ -71,5 +70,6 @@ public class DiscordBot : IHostedService
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         await DiscordClient.StopAsync();
+        DiscordClient.Log -= DiscordClientOnLog;
     }
 }
