@@ -1,16 +1,18 @@
-using Discord;
+﻿using Discord;
 using Discord.Net;
 using Discord.WebSocket;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using YikesBot.Services.Bot;
+using YikesBot.Services.ModerationLog;
 
 namespace YikesBot.Services.SlashCommands;
 
 public class SlashCommandHandler : IHostedService
 {
     private readonly DiscordSocketClient _discordClient;
+    private readonly ModerationLogger _moderationLogger;
     private readonly ILogger<SlashCommandHandler> _logger;
     private readonly IEnumerable<ICommand> _commands;
 
@@ -19,10 +21,12 @@ public class SlashCommandHandler : IHostedService
 
     public SlashCommandHandler(
         DiscordBot discordBot,
+        ModerationLogger moderationLogger,
         ILogger<SlashCommandHandler> logger,
         IEnumerable<ICommand> commands)
     {
         _discordClient = discordBot?.DiscordClient ?? throw new ArgumentNullException(nameof(discordBot));
+        _moderationLogger = moderationLogger ?? throw new ArgumentNullException(nameof(moderationLogger));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _commands = commands ?? throw new ArgumentNullException(nameof(commands));
     }
@@ -71,18 +75,25 @@ public class SlashCommandHandler : IHostedService
         }
     }
 
-    private Task DiscordClientOnSlashCommandExecuted(ISlashCommandInteraction command)
+    private async Task DiscordClientOnSlashCommandExecuted(ISlashCommandInteraction command)
     {
         _logger.LogTrace("Slash command received {command}", command.Data.Name);
         if (!_registeredCommands.TryGetValue(command.Data.Id, out ICommand commandModule))
         {
             _logger.LogError("Unhandled command executed {name} {id}", command.Data.Name, command.Data.Id);
-            return Task.CompletedTask;
+            return;
+        }
+
+        if (command.GuildId != null)
+        {
+            _moderationLogger.Log(
+                $"{command.User.Mention} used `/{command.Data.Name}` in <#{command.ChannelId}>",
+                string.Empty,
+                command.User,
+                _discordClient.GetGuild(command.GuildId.Value));
         }
 
         RunSlashCommand(commandModule, command);
-
-        return Task.CompletedTask;
     }
 
     /// <summary>
