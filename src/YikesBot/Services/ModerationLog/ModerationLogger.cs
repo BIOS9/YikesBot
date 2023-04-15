@@ -35,6 +35,27 @@ public class ModerationLogger : IHostedService
         return Task.CompletedTask;
     }
 
+    public Task LogAsync(string title, string description, IUser user, IGuild guild)
+    {
+        return LogAsync(new EmbedBuilder()
+            .WithDescription($"**{title}**\n{description}")
+            .WithColor(new Color(254, 204, 80))
+            .WithCurrentTimestamp()
+            .WithAuthor(x =>
+            {
+                x.Name = $"{user.Username}#{user.DiscriminatorValue}";
+                x.IconUrl = user.GetAvatarUrl(ImageFormat.Auto, 256);
+            })
+            .WithFooter($"User: {user.Id}")
+            .Build(), guild);
+    }
+
+    public async Task LogAsync(Embed embed, IGuild guild)
+    {
+        var channel = await GetLogChannelAsync(guild);
+        await channel.SendMessageAsync(embed: embed);
+    }
+
     private Task DiscordClientOnUserJoined(SocketGuildUser arg)
     {
         throw new NotImplementedException();
@@ -44,6 +65,8 @@ public class ModerationLogger : IHostedService
     {
         throw new NotImplementedException();
     }
+    
+    
     
     private async Task<IMessageChannel> GetLogChannelAsync(IGuild guild)
     {
