@@ -35,9 +35,9 @@ public class ModerationLogger : IHostedService
         return Task.CompletedTask;
     }
 
-    public Task LogAsync(string title, string description, IUser user, IGuild guild)
+    public void Log(string title, string description, IUser user, IGuild guild)
     {
-        return LogAsync(new EmbedBuilder()
+        Log(new EmbedBuilder()
             .WithDescription($"**{title}**\n{description}".Trim())
             .WithColor(new Color(254, 204, 80))
             .WithCurrentTimestamp()
@@ -50,7 +50,7 @@ public class ModerationLogger : IHostedService
             .Build(), guild);
     }
 
-    public async Task LogAsync(Embed embed, IGuild guild)
+    public async void Log(Embed embed, IGuild guild)
     {
         var channel = await GetLogChannelAsync(guild);
         await channel.SendMessageAsync(embed: embed);
@@ -58,12 +58,14 @@ public class ModerationLogger : IHostedService
 
     private Task DiscordClientOnUserJoined(SocketGuildUser user)
     {
-        return LogAsync($"Member Joined: {user.Mention}", string.Empty, user, user.Guild);
+        Log($"Member Joined: {user.Mention}", string.Empty, user, user.Guild);
+        return Task.CompletedTask;
     }
     
     private Task DiscordClientOnUserLeft(SocketGuild guild, SocketUser user)
     {
-        return LogAsync($"Member Left: {user.Mention}", string.Empty, user, guild);
+        Log($"Member Left: {user.Mention}", string.Empty, user, guild);
+        return Task.CompletedTask;
     }
 
     private async Task<IMessageChannel> GetLogChannelAsync(IGuild guild)
