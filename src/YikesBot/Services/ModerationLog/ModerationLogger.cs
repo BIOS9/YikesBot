@@ -1,4 +1,4 @@
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -56,18 +56,16 @@ public class ModerationLogger : IHostedService
         await channel.SendMessageAsync(embed: embed);
     }
 
-    private Task DiscordClientOnUserJoined(SocketGuildUser arg)
+    private Task DiscordClientOnUserJoined(SocketGuildUser user)
     {
-        throw new NotImplementedException();
+        return LogAsync($"Member Joined: {user.Mention}", string.Empty, user, user.Guild);
     }
     
-    private Task DiscordClientOnUserLeft(SocketGuild arg1, SocketUser arg2)
+    private Task DiscordClientOnUserLeft(SocketGuild guild, SocketUser user)
     {
-        throw new NotImplementedException();
+        return LogAsync($"Member Left: {user.Mention}", string.Empty, user, guild);
     }
-    
-    
-    
+
     private async Task<IMessageChannel> GetLogChannelAsync(IGuild guild)
     {
         var channels = await guild.GetTextChannelsAsync();
