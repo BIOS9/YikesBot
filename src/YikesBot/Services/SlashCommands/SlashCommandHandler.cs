@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Net;
 using Discord.WebSocket;
 using Microsoft.Extensions.Hosting;
@@ -74,21 +74,13 @@ public class SlashCommandHandler : IHostedService
     private Task DiscordClientOnSlashCommandExecuted(ISlashCommandInteraction command)
     {
         _logger.LogTrace("Slash command received {command}", command.Data.Name);
-        try
+        if (!_registeredCommands.TryGetValue(command.Data.Id, out ICommand commandModule))
         {
-            if (!_registeredCommands.TryGetValue(command.Data.Id, out ICommand commandModule))
-            {
-                _logger.LogError("Unhandled command executed {name} {id}", command.Data.Name, command.Data.Id);
-                return Task.CompletedTask;
-            }
+            _logger.LogError("Unhandled command executed {name} {id}", command.Data.Name, command.Data.Id);
+            return Task.CompletedTask;
+        }
 
-            RunSlashCommand(commandModule, command);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Exception was thrown while running slash command {name} {id}", command.Data.Name,
-                command.Data.Id);
-        }
+        RunSlashCommand(commandModule, command);
 
         return Task.CompletedTask;
     }
