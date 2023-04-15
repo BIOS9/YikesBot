@@ -91,7 +91,7 @@ public class DeletedMessagesLogger : IHostedService
                     .WithCurrentTimestamp()
                     .WithAuthor(x =>
                     {
-                        x.Name = $"{message.Author.Username}#{message.Author.DiscriminatorValue}";
+                        x.Name = $"{message.Author.Username}#{message.Author.Discriminator}";
                         x.IconUrl = message.Author.GetAvatarUrl(ImageFormat.Auto, 256);
                     })
                     .WithFooter($"User: {message.Author.Id} • Message: {message.Id}");
@@ -131,7 +131,7 @@ public class DeletedMessagesLogger : IHostedService
                     .WithImageUrl($"attachment://{attachment.Filename}")
                     .WithAuthor(x =>
                     {
-                        x.Name = $"{message.Author.Username}#{message.Author.DiscriminatorValue}";
+                        x.Name = $"{message.Author.Username}#{message.Author.Discriminator}";
                         x.IconUrl = message.Author.GetAvatarUrl(ImageFormat.Auto, 256);
                     })
                     .WithFooter($"User: {message.Author.Id} • Message: {message.Id}");
