@@ -47,6 +47,7 @@ public class DiscordBot : IHostedService
                              | GatewayIntents.MessageContent
                              | GatewayIntents.GuildMessages
                              | GatewayIntents.GuildMessageReactions
+                             | GatewayIntents.GuildMembers
         });
     }
 

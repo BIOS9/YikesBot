@@ -8,6 +8,7 @@ using YikesBot.Services.DeletedMessages;
 using YikesBot.Services.Furry;
 using YikesBot.Services.MessageContent;
 using YikesBot.Services.MessageReactions;
+using YikesBot.Services.ModerationLog;
 using YikesBot.Services.SlashCommands;
 
 await Host.CreateDefaultBuilder(args)
@@ -26,6 +27,7 @@ await Host.CreateDefaultBuilder(args)
         builder.RegisterModule(new MessageContentModule());
         builder.RegisterModule(new MessageReactionsModule());
         builder.RegisterModule(new DeletedMessagesModule());
+        builder.RegisterModule(new ModerationLogModule());
     })
     .Build()
     .RunAsync();
