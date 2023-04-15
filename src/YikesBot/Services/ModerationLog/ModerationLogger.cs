@@ -1,11 +1,8 @@
-﻿using System.Collections.Concurrent;
-using Discord;
-using Discord.Rest;
+﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using YikesBot.Services.Bot;
-using YikesBot.Services.DeletedMessages;
 
 namespace YikesBot.Services.ModerationLog;
 
