@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -38,12 +38,12 @@ public class ModerationLogger : IHostedService
     public Task LogAsync(string title, string description, IUser user, IGuild guild)
     {
         return LogAsync(new EmbedBuilder()
-            .WithDescription($"**{title}**\n{description}")
+            .WithDescription($"**{title}**\n{description}".Trim())
             .WithColor(new Color(254, 204, 80))
             .WithCurrentTimestamp()
             .WithAuthor(x =>
             {
-                x.Name = $"{user.Username}#{user.DiscriminatorValue}";
+                x.Name = $"{user.Username}#{user.Discriminator}";
                 x.IconUrl = user.GetAvatarUrl(ImageFormat.Auto, 256);
             })
             .WithFooter($"User: {user.Id}")
