@@ -1,7 +1,7 @@
 ﻿FROM mcr.microsoft.com/dotnet/runtime:7.0 AS base
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src/YikesBot
-COPY /src/YikesBot/* ./
+COPY /src/YikesBot ./
 RUN dotnet restore YikesBot.csproj
 RUN dotnet build YikesBot.csproj -c Release -o /app/build
 
