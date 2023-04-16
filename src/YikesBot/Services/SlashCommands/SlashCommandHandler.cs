@@ -93,14 +93,14 @@ public class SlashCommandHandler : IHostedService
                 _discordClient.GetGuild(command.GuildId.Value));
         }
 
-        RunSlashCommand(commandModule, command);
+        _ = RunSlashCommand(commandModule, command);
         return Task.CompletedTask;
     }
 
     /// <summary>
     /// Runs slash command with exception handling.
     /// </summary>
-    private async void RunSlashCommand(ICommand commandModule, ISlashCommandInteraction command)
+    private async Task RunSlashCommand(ICommand commandModule, ISlashCommandInteraction command)
     {
         try
         {
