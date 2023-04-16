@@ -74,4 +74,24 @@ public class DiscordBot : IHostedService
         await DiscordClient.StopAsync();
         DiscordClient.Log -= DiscordClientOnLog;
     }
+
+    /// <summary>
+    /// Returns log channel with specified name in a guild.
+    /// If the channel does not exist, it will be created.
+    /// </summary>
+    public async Task<IMessageChannel> RequireLogChannelAsync(IGuild guild, string name)
+    {
+        var channels = await guild.GetTextChannelsAsync();
+        IMessageChannel? channel = channels.FirstOrDefault(x => x.Name.Equals(name));
+        if (channel == null)
+        {
+            _logger.LogInformation("Creating channel {Channel} in guild {GuildName} {GuildID}", 
+                name, guild.Name, guild.Id);
+            var permissionOverrides = new OverwritePermissions(viewChannel: PermValue.Deny);
+            var newChannel = await guild.CreateTextChannelAsync(name);
+            await newChannel.AddPermissionOverwriteAsync(guild.EveryoneRole, permissionOverrides);
+            return newChannel;
+        }
+        return channel;
+    }
 }

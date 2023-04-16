@@ -23,7 +23,6 @@ public class ModerationLogger : IHostedService
     {
         _discordBot.DiscordClient.UserJoined += DiscordClientOnUserJoined;
         _discordBot.DiscordClient.UserLeft += DiscordClientOnUserLeft;
-        _discordBot.DiscordClient.GuildAvailable += CreateLogChannelAsync;
         return Task.CompletedTask;
     }
 
@@ -31,7 +30,6 @@ public class ModerationLogger : IHostedService
     {
         _discordBot.DiscordClient.UserJoined -= DiscordClientOnUserJoined;
         _discordBot.DiscordClient.UserLeft -= DiscordClientOnUserLeft;
-        _discordBot.DiscordClient.GuildAvailable -= CreateLogChannelAsync;
         return Task.CompletedTask;
     }
 
@@ -62,7 +60,7 @@ public class ModerationLogger : IHostedService
     
     public async Task LogAsync(Embed embed, IGuild guild)
     {
-        var channel = await GetLogChannelAsync(guild);
+        var channel = await _discordBot.RequireLogChannelAsync(guild, LogChannelName);
         await channel.SendMessageAsync(embed: embed);
     }
 
@@ -78,22 +76,5 @@ public class ModerationLogger : IHostedService
         return Task.CompletedTask;
     }
 
-    private async Task<IMessageChannel> GetLogChannelAsync(IGuild guild)
-    {
-        var channels = await guild.GetTextChannelsAsync();
-        return channels.First(x => x.Name.Equals(LogChannelName));
-    }
-
-    private async Task CreateLogChannelAsync(IGuild guild)
-    {
-        var channels = await guild.GetTextChannelsAsync();
-        if (!channels.Any(x => x.Name.Equals(LogChannelName)))
-        {
-            _logger.LogInformation("Creating moderation log channel in guild {GuildName} {GuildID}", guild.Name,
-                guild.Id);
-            var permissionOverrides = new OverwritePermissions(viewChannel: PermValue.Deny);
-            var logChannel = await guild.CreateTextChannelAsync(LogChannelName);
-            await logChannel.AddPermissionOverwriteAsync(guild.EveryoneRole, permissionOverrides);
-        }
-    }
+    
 }
