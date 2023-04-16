@@ -41,10 +41,12 @@ public class MessageReactionHandler : IHostedService
     {
         IUserMessage message = await cachableMessage.GetOrDownloadAsync();
         IMessageChannel channel = await cachableChannel.GetOrDownloadAsync();
-        
+
         if (message.Author.IsBot || message.Author.Id == _discordBot.DiscordClient.CurrentUser.Id)
+        {
             return;
-        
+        }
+
         foreach (var handler in _reactionHandlers)
         {
             if (await handler.ExecuteAsync(message, channel, reaction))
