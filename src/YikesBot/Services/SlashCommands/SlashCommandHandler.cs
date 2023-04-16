@@ -75,13 +75,13 @@ public class SlashCommandHandler : IHostedService
         }
     }
 
-    private async Task DiscordClientOnSlashCommandExecuted(ISlashCommandInteraction command)
+    private Task DiscordClientOnSlashCommandExecuted(ISlashCommandInteraction command)
     {
         _logger.LogTrace("Slash command received {command}", command.Data.Name);
-        if (!_registeredCommands.TryGetValue(command.Data.Id, out ICommand commandModule))
+        if (!_registeredCommands.TryGetValue(command.Data.Id, out ICommand? commandModule))
         {
             _logger.LogError("Unhandled command executed {name} {id}", command.Data.Name, command.Data.Id);
-            return;
+            return Task.CompletedTask;
         }
 
         if (command.GuildId != null)
@@ -94,6 +94,7 @@ public class SlashCommandHandler : IHostedService
         }
 
         RunSlashCommand(commandModule, command);
+        return Task.CompletedTask;
     }
 
     /// <summary>
