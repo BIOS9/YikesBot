@@ -1,4 +1,7 @@
 # YikesBot
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6c4ef1b1ff79489e8880af98fec70530)](https://app.codacy.com/gh/BIOS9/YikesBot?utm_source=github.com&utm_medium=referral&utm_content=BIOS9/YikesBot&utm_campaign=Badge_Grade)
+
 ![.NET Build](https://github.com/BIOS9/YikesBot/workflows/.NET%20Build/badge.svg)
 ![CodeQL](https://github.com/BIOS9/YikesBot/workflows/CodeQL/badge.svg)
 
