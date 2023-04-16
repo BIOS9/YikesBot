@@ -11,7 +11,10 @@ public class PinReactHandler : IReactionHandler
     
     public async Task<bool> ExecuteAsync(IUserMessage message, IMessageChannel channel, SocketReaction reaction)
     {
-        if (!reaction.Emote.Name.Equals("📌")) return false;
+        if (!reaction.Emote.Name.Equals("📌"))
+        {
+            return false;
+        }
         var emotes = await message.GetReactionUsersAsync(new Emoji("📌"), RequiredPinCount).FlattenAsync();
         if (emotes.Count() >= RequiredPinCount && !message.IsPinned)
         {

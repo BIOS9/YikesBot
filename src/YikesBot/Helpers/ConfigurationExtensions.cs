@@ -11,6 +11,7 @@ public static class ConfigurationHelpers
         var configurationSection = configuration.GetSection(key);
 
         if (!configurationSection.Exists())
+        {
             throw configuration switch
             {
                 IConfigurationRoot configurationIsRoot => new ArgumentException(
@@ -22,6 +23,7 @@ public static class ConfigurationHelpers
                 _ => new ArgumentException($"Failed to find configuration at '{configurationSection.Path}'",
                     nameof(key))
             };
+        }
 
         return configurationSection;
     }

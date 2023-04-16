@@ -55,20 +55,29 @@ public class DeletedMessagesLogger : IHostedService
         {
             var logChannel = await GetLogChannelAsync(channel.Guild);
             var message = cachableMessage.Value;
-            if (message == null) return; // If the message is not in our cache we cannot get the content
-            
+            if (message == null) // If the message is not in our cache we cannot get the content
+            {
+                return;
+            }
+
             IUser? suspectedDeleter = null;
             var auditLogs = channel.Guild.GetAuditLogsAsync(10, actionType: ActionType.MessageDeleted);
             await foreach (var logs in auditLogs)
             {
-                if (suspectedDeleter != null) break;
+                if (suspectedDeleter != null)
+                {
+                    break;
+                }
+                
                 foreach (var log in logs)
                 {
-                    if (!(log.Data is MessageDeleteAuditLogData messageDeleteData)) continue;
-                    if (messageDeleteData.ChannelId != channel.Id) continue;
-                    if (messageDeleteData.Target.Id != message.Author.Id) continue;
-                    if (log.CreatedAt < DateTimeOffset.UtcNow - TimeSpan.FromMinutes(10))
-                        continue; // Multiple message deletes get saved under the first timestamp
+                    if (!(log.Data is MessageDeleteAuditLogData messageDeleteData) ||   // Ensure audit log is for deleted message
+                        messageDeleteData.ChannelId != channel.Id ||                    // Ensure channel matches deleted message
+                        messageDeleteData.Target.Id != message.Author.Id ||             // Ensure author matches deleted message
+                        log.CreatedAt < DateTimeOffset.UtcNow - TimeSpan.FromMinutes(10)) // Multiple message deletes get saved under the first timestamp   
+                    {
+                        continue;
+                    }
 
                     suspectedDeleter = log.User;
                     break;
@@ -95,16 +104,16 @@ public class DeletedMessagesLogger : IHostedService
                         x.IconUrl = message.Author.GetAvatarUrl(ImageFormat.Auto, 256);
                     })
                     .WithFooter($"User: {message.Author.Id} • Message: {message.Id}");
-                if (suspectedDeleter != null)
-                {
-                }
 
                 await logChannel.SendMessageAsync(string.Empty, embed: embed.Build());
             }
 
             foreach (var attachment in message.Attachments)
             {
-                if (!attachment.ContentType.StartsWith("image")) continue;
+                if (!attachment.ContentType.StartsWith("image"))
+                {
+                    continue;
+                }
 
                 _logger.LogInformation("Logging deleted image from {Author} in {Guild}/{Channel}",
                     message.Author.Username + "#" + message.Author.Discriminator,

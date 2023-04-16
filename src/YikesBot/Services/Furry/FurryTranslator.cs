@@ -1,11 +1,12 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace YikesBot.Services.Furry;
 
-public class FurryTranslator
+public static class FurryTranslator
 {
-    private static Random _random = new Random(); 
+    private static readonly Random RandomGenerator = new Random(); 
     
     // Replaces single words
     private static readonly Dictionary<string, string> WordReplacements = new()
@@ -177,27 +178,33 @@ public class FurryTranslator
             return token; // Skip URLs
         }
 
-        string lowerToken = token.ToLower();
+        string lowerToken = token.ToLower(CultureInfo.InvariantCulture);
         
         bool globalReplaced = TryReplaceGlobal(lowerToken, out lowerToken);
-        
+
         if (TryReplaceWord(lowerToken, out string wordReplacement))
+        {
             return wordReplacement;
-        
+        }
+
         if (TryReplaceRegex(lowerToken, out string regexReplacement))
+        {
             return regexReplacement;
+        }
 
         if (!globalReplaced && TryReplaceLW(lowerToken, out string lwReplacement))
+        {
             return lwReplacement;
-        
+        }
+
         return lowerToken;
     }
 
     private static bool TryReplaceWord(string token, out string output)
     {
-        if (WordReplacements.ContainsKey(token.ToLower()))
+        if (WordReplacements.ContainsKey(token.ToLower(CultureInfo.InvariantCulture)))
         {
-            output = WordReplacements[token.ToLower()];
+            output = WordReplacements[token.ToLower(CultureInfo.InvariantCulture)];
             return true;
         }
 
@@ -243,18 +250,27 @@ public class FurryTranslator
             {
                 anyMatch = true;
                 output = output.Replace(globalReplacement.Item1, globalReplacement.Item2);
-                if (globalReplacement.Item3) return true; // Return if stop on this rule is set
+                if (globalReplacement.Item3)
+                {
+                    return true; // Return if stop on this rule is set
+                }
             }
         }
 
-        if (anyMatch) return true;
+        if (anyMatch)
+        {
+            return true;
+        }
         
         return false;
     }
 
     private static string InsertFurryTokens(string input)
     {
-        if (input.Length < 10) return input;
+        if (input.Length < 10)
+        {
+            return input;
+        }
         return InsertEndTokens(InsertMiddleTokens(input));
     }
 
@@ -266,9 +282,9 @@ public class FurryTranslator
         {
             builder.Append(token);
             builder.Append(" ");
-            if (_random.NextDouble() < MiddleTokenChance)
+            if (RandomGenerator.NextDouble() < MiddleTokenChance)
             {
-                builder.Append(MiddleTokens[_random.Next(MiddleTokens.Count)]);
+                builder.Append(MiddleTokens[RandomGenerator.Next(MiddleTokens.Count)]);
                 builder.Append(" ");
             }
         }
@@ -277,9 +293,9 @@ public class FurryTranslator
     
     private static string InsertEndTokens(string input)
     {
-        if (_random.NextDouble() < EndTokenChance)
+        if (RandomGenerator.NextDouble() < EndTokenChance)
         {
-            return input + " " + EndTokens[_random.Next(EndTokens.Count)];
+            return input + " " + EndTokens[RandomGenerator.Next(EndTokens.Count)];
         }
         return input;
     }

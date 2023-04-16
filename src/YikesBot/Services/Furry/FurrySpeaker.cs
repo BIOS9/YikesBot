@@ -42,7 +42,10 @@ public class FurrySpeaker : IHostedService
 
     public async Task EnableChannelAsync(SocketTextChannel channel)
     {
-        if (channel == null) throw new ArgumentNullException(nameof(channel));
+        if (channel == null)
+        {
+            throw new ArgumentNullException(nameof(channel));
+        }
         _logger.LogInformation("Enabling furry speaker in {Guild}/{Channel}", channel.Guild, channel.Name);
 
         RestWebhook webhook = (await channel.GetWebhooksAsync()).FirstOrDefault(defaultValue: null)
@@ -53,7 +56,10 @@ public class FurrySpeaker : IHostedService
     
     public void DisableChannel(SocketTextChannel channel)
     {
-        if (channel == null) throw new ArgumentNullException(nameof(channel));
+        if (channel == null)
+        {
+            throw new ArgumentNullException(nameof(channel));
+        }
         _logger.LogInformation("Disabling furry speaker in {Guild}/{Channel}", channel.Guild, channel.Name);
         _ = _enabledChannels.TryRemove(channel.Id, out _);
     }
@@ -69,16 +75,27 @@ public class FurrySpeaker : IHostedService
     
     private async Task DiscordClientOnMessageReceived(SocketMessage message)
     {
-        if (message.Author.IsBot || message.Author.Id == _discordBot.DiscordClient.CurrentUser.Id) return;
-        if (!_enabledChannels.ContainsKey(message.Channel.Id)) return;
+        if (message.Author.IsBot || message.Author.Id == _discordBot.DiscordClient.CurrentUser.Id)
+        {
+            return;
+        }
+
+        if (!_enabledChannels.ContainsKey(message.Channel.Id))
+        {
+            return;
+        }
         
         // Check if a user posted the message
         if (!(message is SocketUserMessage msg))
+        {
             return;
+        }
 
         // Check if it is not a DM
         if (!(message.Author is SocketGuildUser author))
+        {
             return;
+        }
 
         _deletedMessagesLogger.IgnoreMessage(message.Id);
         await message.DeleteAsync();
@@ -88,7 +105,10 @@ public class FurrySpeaker : IHostedService
         Dictionary<string, FileAttachment> newAttachments = new();
         foreach (var attachment in message.Attachments)
         {
-            if (!attachment.ContentType.StartsWith("image")) continue;
+            if (!attachment.ContentType.StartsWith("image"))
+            {
+                continue;
+            }
 
             string path = Path.GetTempFileName();
             using (var httpClient = new HttpClient())
