@@ -26,13 +26,12 @@ public class DiscordBot : IHostedService
             };
 
     private readonly DiscordBotOptions _options;
-    public readonly DiscordSocketClient DiscordClient;
-
+    public DiscordSocketClient DiscordClient { get; }
     public DiscordBot(
         ILoggerFactory loggerFactory,
         IOptions<DiscordBotOptions> options)
     {
-        if (loggerFactory == null) throw new ArgumentNullException(nameof(loggerFactory));
+        if (loggerFactory == null) { throw new ArgumentNullException(nameof(loggerFactory)); }
         _logger = loggerFactory.CreateLogger<DiscordBot>();
         _botLogger = loggerFactory.CreateLogger<DiscordSocketClient>();
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
