@@ -20,7 +20,10 @@ public class AwooHandler : IContentHandler
 
     public async Task<bool> ExecuteAsync(SocketMessage message)
     {
-        if (!await IsMatchAsync(message)) return false;
+        if (!await IsMatchAsync(message))
+        {
+            return false;
+        }
         await message.Channel.SendMessageAsync(AwooEmoji);
         return true;
     }

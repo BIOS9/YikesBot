@@ -36,8 +36,10 @@ public class MessageContentHandler : IHostedService
     private async Task DiscordClientOnMessageReceived(SocketMessage message)
     {
         if (message.Author.IsBot || message.Author.Id == _discordBot.DiscordClient.CurrentUser.Id)
+        {
             return;
-        
+        }
+
         foreach (var handler in _contentHandlers)
         {
             if (await handler.ExecuteAsync(message))

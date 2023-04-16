@@ -3,7 +3,6 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using YikesBot.Services.SlashCommands;
 
 namespace YikesBot.Services.Bot;
 
@@ -31,7 +30,10 @@ public class DiscordBot : IHostedService
         ILoggerFactory loggerFactory,
         IOptions<DiscordBotOptions> options)
     {
-        if (loggerFactory == null) { throw new ArgumentNullException(nameof(loggerFactory)); }
+        if (loggerFactory == null)
+        {
+            throw new ArgumentNullException(nameof(loggerFactory));
+        }
         _logger = loggerFactory.CreateLogger<DiscordBot>();
         _botLogger = loggerFactory.CreateLogger<DiscordSocketClient>();
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
