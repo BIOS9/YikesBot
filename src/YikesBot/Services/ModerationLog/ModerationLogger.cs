@@ -37,7 +37,12 @@ public class ModerationLogger : IHostedService
 
     public void Log(string title, string description, IUser user, IGuild guild)
     {
-        Log(new EmbedBuilder()
+        _ = LogAsync(title, description, user, guild);
+    }
+    
+    public Task LogAsync(string title, string description, IUser user, IGuild guild)
+    {
+        return LogAsync(new EmbedBuilder()
             .WithDescription($"**{title}**\n{description}".Trim())
             .WithColor(new Color(254, 204, 80))
             .WithCurrentTimestamp()
@@ -50,7 +55,12 @@ public class ModerationLogger : IHostedService
             .Build(), guild);
     }
 
-    public async void Log(Embed embed, IGuild guild)
+    public void Log(Embed embed, IGuild guild)
+    {
+        _ = LogAsync(embed, guild);
+    }
+    
+    public async Task LogAsync(Embed embed, IGuild guild)
     {
         var channel = await GetLogChannelAsync(guild);
         await channel.SendMessageAsync(embed: embed);
