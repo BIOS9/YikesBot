@@ -25,7 +25,6 @@ public class DeletedMessagesLogger : IHostedService
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _discordBot.DiscordClient.MessageDeleted += DiscordClientOnMessageDeleted;
-        _discordBot.DiscordClient.GuildAvailable += CreateLogChannelAsync;
         return Task.CompletedTask;
     }
 
@@ -33,7 +32,6 @@ public class DeletedMessagesLogger : IHostedService
     {
         _ignoredMessages.Clear();
         _discordBot.DiscordClient.MessageDeleted -= DiscordClientOnMessageDeleted;
-        _discordBot.DiscordClient.GuildAvailable -= CreateLogChannelAsync;
         return Task.CompletedTask;
     }
 
@@ -53,7 +51,7 @@ public class DeletedMessagesLogger : IHostedService
         
         if (await cachableChannel.GetOrDownloadAsync() is SocketGuildChannel channel)
         {
-            var logChannel = await GetLogChannelAsync(channel.Guild);
+            var logChannel = await _discordBot.RequireLogChannelAsync(channel.Guild, LogChannelName);
             var message = cachableMessage.Value;
             if (message == null) // If the message is not in our cache we cannot get the content
             {
@@ -147,25 +145,6 @@ public class DeletedMessagesLogger : IHostedService
                 await logChannel.SendFileAsync(File.Open(path, FileMode.Open), embed: embed.Build(), filename: attachment.Filename);
                 File.Delete(path);
             }
-        }
-    }
-
-    private async Task<IMessageChannel> GetLogChannelAsync(IGuild guild)
-    {
-        var channels = await guild.GetTextChannelsAsync();
-        return channels.First(x => x.Name.Equals(LogChannelName));
-    }
-
-    private async Task CreateLogChannelAsync(IGuild guild)
-    {
-        var channels = await guild.GetTextChannelsAsync();
-        if (!channels.Any(x => x.Name.Equals(LogChannelName)))
-        {
-            _logger.LogInformation("Creating deleted messages channel in guild {GuildName} {GuildID}", guild.Name,
-                guild.Id);
-            var permissionOverrides = new OverwritePermissions(viewChannel: PermValue.Deny);
-            var logChannel = await guild.CreateTextChannelAsync(LogChannelName);
-            await logChannel.AddPermissionOverwriteAsync(guild.EveryoneRole, permissionOverrides);
         }
     }
 }
