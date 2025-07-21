@@ -10,7 +10,7 @@
 
     <ItemGroup>
         <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
-        <PackageReference Include="Discord.Net" Version="3.17.4" />
+        <PackageReference Include="Discord.Net" Version="3.18.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.7" />
         <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.7" />
         <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.7" />
